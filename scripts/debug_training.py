@@ -214,18 +214,21 @@ def test_sft_trainer():
         model = get_peft_model(model, lora_config)
         print("✓ LoRA配置完成")
 
-        # 训练参数 - 强制类型转换
+        # 训练参数 - 强制类型转换，使用warmup_steps替代deprecated的warmup_ratio
+        warmup_steps = int(5 // 1 * float(0.1))  # 简化计算
         training_args = TrainingArguments(
             output_dir="/tmp/test",
             num_train_epochs=int(1),
             per_device_train_batch_size=int(1),
             learning_rate=float(5e-5),
-            warmup_ratio=float(0.1),
+            warmup_steps=warmup_steps,
             weight_decay=float(0.01),
             save_steps=int(500),
             logging_steps=int(10),
             seed=int(42),
             report_to="none",
+            dataloader_num_workers=0,
+            dataloader_pin_memory=torch.cuda.is_available(),
         )
         print("✓ 训练参数创建成功")
 

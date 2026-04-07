@@ -221,6 +221,18 @@ class MethodThinkerTrainer:
             if val_data:
                 eval_dataset = self._build_methodology_dataset(val_data)
 
+            # GPU检测
+            has_gpu = torch.cuda.is_available()
+            if has_gpu:
+                gpu_name = torch.cuda.get_device_name(0)
+                logger.info(f"检测到GPU: {gpu_name}")
+            else:
+                logger.warning("未检测到GPU，将使用CPU训练（速度较慢）")
+
+            # 计算warmup_steps替代deprecated的warmup_ratio
+            total_steps = len(train_dataset) // int(self.config.batch_size) * int(self.config.num_epochs)
+            warmup_steps = int(total_steps * float(self.config.warmup_ratio))
+
             # 构建训练参数 - 确保所有数值参数类型正确
             # 基础参数
             args_dict = {
@@ -229,16 +241,18 @@ class MethodThinkerTrainer:
                 "per_device_train_batch_size": int(self.config.batch_size),
                 "per_device_eval_batch_size": int(self.config.batch_size),
                 "learning_rate": float(self.config.learning_rate),
-                "warmup_ratio": float(self.config.warmup_ratio),
+                "warmup_steps": warmup_steps,  # 使用warmup_steps替代warmup_ratio
                 "weight_decay": float(self.config.weight_decay),
                 "gradient_accumulation_steps": int(self.config.gradient_accumulation_steps),
                 "save_steps": int(self.config.save_steps),
                 "logging_steps": int(self.config.logging_steps),
                 "save_total_limit": 3,
-                "bf16": torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
-                "fp16": torch.cuda.is_available() and not torch.cuda.is_bf16_supported(),
+                "bf16": has_gpu and torch.cuda.is_bf16_supported(),
+                "fp16": has_gpu and not torch.cuda.is_bf16_supported(),
                 "seed": int(self.config.seed),
                 "report_to": "none",
+                "dataloader_num_workers": 0,  # Colab兼容
+                "dataloader_pin_memory": has_gpu,  # 仅GPU时启用
             }
 
             # 仅在有eval_dataset时添加eval相关参数
@@ -328,22 +342,31 @@ class MethodThinkerTrainer:
             # 构建数据集
             train_dataset = self._build_methodology_dataset(diversity_data)
 
+            # GPU检测
+            has_gpu = torch.cuda.is_available()
+
+            # 计算warmup_steps
+            total_steps = len(train_dataset) // int(self.config.batch_size) * int(self.config.num_epochs)
+            warmup_steps = int(total_steps * float(self.config.warmup_ratio))
+
             # 训练参数 - 确保所有数值参数类型正确
             training_args = TrainingArguments(
                 output_dir=os.path.join(self.config.output_dir, "diversity"),
                 num_train_epochs=int(self.config.num_epochs),
                 per_device_train_batch_size=int(self.config.batch_size),
                 learning_rate=float(self.config.learning_rate) * 0.8,  # 稍低学习率
-                warmup_ratio=float(self.config.warmup_ratio),
+                warmup_steps=warmup_steps,  # 使用warmup_steps替代warmup_ratio
                 weight_decay=float(self.config.weight_decay),
                 gradient_accumulation_steps=int(self.config.gradient_accumulation_steps),
                 save_steps=int(self.config.save_steps),
                 logging_steps=int(self.config.logging_steps),
                 save_total_limit=2,
-                bf16=torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
-                fp16=torch.cuda.is_available() and not torch.cuda.is_bf16_supported(),
+                bf16=has_gpu and torch.cuda.is_bf16_supported(),
+                fp16=has_gpu and not torch.cuda.is_bf16_supported(),
                 seed=int(self.config.seed),
                 report_to="none",
+                dataloader_num_workers=0,
+                dataloader_pin_memory=has_gpu,
             )
 
             trainer = SFTTrainer(
@@ -413,21 +436,30 @@ class MethodThinkerTrainer:
 
             train_dataset = self._build_methodology_dataset(reflection_data)
 
+            # GPU检测
+            has_gpu = torch.cuda.is_available()
+
+            # 计算warmup_steps
+            total_steps = len(train_dataset) // int(self.config.batch_size) * int(self.config.num_epochs)
+            warmup_steps = int(total_steps * float(self.config.warmup_ratio))
+
             training_args = TrainingArguments(
                 output_dir=os.path.join(self.config.output_dir, "reflection"),
                 num_train_epochs=int(self.config.num_epochs),
                 per_device_train_batch_size=int(self.config.batch_size),
                 learning_rate=float(self.config.learning_rate) * 0.5,  # 更低学习率保持稳定性
-                warmup_ratio=float(self.config.warmup_ratio),
+                warmup_steps=warmup_steps,  # 使用warmup_steps替代warmup_ratio
                 weight_decay=float(self.config.weight_decay),
                 gradient_accumulation_steps=int(self.config.gradient_accumulation_steps),
                 save_steps=int(self.config.save_steps),
                 logging_steps=int(self.config.logging_steps),
                 save_total_limit=2,
-                bf16=torch.cuda.is_available() and torch.cuda.is_bf16_supported(),
-                fp16=torch.cuda.is_available() and not torch.cuda.is_bf16_supported(),
+                bf16=has_gpu and torch.cuda.is_bf16_supported(),
+                fp16=has_gpu and not torch.cuda.is_bf16_supported(),
                 seed=int(self.config.seed),
                 report_to="none",
+                dataloader_num_workers=0,
+                dataloader_pin_memory=has_gpu,
             )
 
             trainer = SFTTrainer(
