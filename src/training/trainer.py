@@ -691,18 +691,28 @@ class MethodThinkerTrainer:
         candidates_str = ""
         candidate_methods = sample.get('candidate_methods', [])
         if candidate_methods:
-            candidates_str = "\n".join([
-                f"{i+1}. {m.get('method_name', m.get('name', '未知方法'))}（适用性评分：{m.get('applicability_score', m.get('score', 0)):.2f}）"
-                for i, m in enumerate(candidate_methods)
-            ])
+            formatted_methods = []
+            for i, m in enumerate(candidate_methods):
+                method_name = m.get('method_name', m.get('name', '未知方法'))
+                # 安全处理评分，可能是字符串、数字或缺失
+                score = m.get('applicability_score', m.get('score', 0))
+                try:
+                    score_val = float(score) if score is not None else 0.0
+                except (ValueError, TypeError):
+                    score_val = 0.0
+                formatted_methods.append(f"{i+1}. {method_name}（适用性评分：{score_val:.2f}）")
+            candidates_str = "\n".join(formatted_methods)
         else:
             candidates_str = "（无候选方法信息）"
 
+        problem_text = sample.get('problem', '') or '（问题描述缺失）'
+        problem_type = sample.get('problem_type', '未知类型') or '未知类型'
+
         return f"""【问题】
-{sample.get('problem', '')}
+{problem_text}
 
 【题型】
-{sample.get('problem_type', '未知类型')}
+{problem_type}
 
 【候选方法】
 {candidates_str}
@@ -717,21 +727,25 @@ class MethodThinkerTrainer:
         solution_steps = sample.get('solution_steps', [])
         if solution_steps:
             if isinstance(solution_steps, list):
-                steps_str = "\n".join(solution_steps)
+                steps_str = "\n".join(str(s) for s in solution_steps)
             else:
                 steps_str = str(solution_steps)
 
+        selected_method = sample.get('selected_method', '') or sample.get('method_id', '默认方法')
+        selection_reasoning = sample.get('selection_reasoning', '') or sample.get('method_selection', '该方法适用于当前问题')
+        reflection = sample.get('reflection', '') or '解题思路正确，需要验证关键步骤。'
+
         return f"""【方法选择】
-选中方法：{sample.get('selected_method', '默认方法')}
+选中方法：{selected_method}
 
 【选择理由】
-{sample.get('selection_reasoning', '该方法适用于当前问题')}
+{selection_reasoning}
 
 【解答过程】
 {steps_str}
 
 【反思与验证】
-{sample.get('reflection', '解题思路正确，需要验证关键步骤。')}
+{reflection}
 
 """
 

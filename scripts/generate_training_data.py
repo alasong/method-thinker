@@ -73,25 +73,38 @@ def load_problems(problems_path: str) -> List[Dict]:
         with open(problems_path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
             if isinstance(data, dict) and 'problems' in data:
-                problems = data['problems']
+                raw_problems = data['problems']
             elif isinstance(data, list):
-                problems = data
+                raw_problems = data
             else:
-                problems = [data]
+                raw_problems = [data]
     elif problems_path.endswith('.jsonl'):
         with open(problems_path, 'r', encoding='utf-8') as f:
+            raw_problems = []
             for line in f:
                 if line.strip():
-                    problems.append(json.loads(line))
+                    raw_problems.append(json.loads(line))
     else:
         with open(problems_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             if isinstance(data, list):
-                problems = data
+                raw_problems = data
             elif isinstance(data, dict) and 'problems' in data:
-                problems = data['problems']
+                raw_problems = data['problems']
             else:
-                problems = [data]
+                raw_problems = [data]
+
+    # 标准化字段名
+    for p in raw_problems:
+        normalized = {
+            'problem': p.get('problem') or p.get('statement', ''),
+            'problem_type': p.get('problem_type') or p.get('category', 'general'),
+            'difficulty': p.get('difficulty', 3),
+            'id': p.get('id', p.get('problem_id', '')),
+            'answer': p.get('answer', ''),
+            'methods': p.get('methods', []),
+        }
+        problems.append(normalized)
 
     print(f"加载问题: {problems_path}")
     print(f"  问题数: {len(problems)}")
