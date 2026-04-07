@@ -249,7 +249,7 @@ class MethodThinkerTrainer:
                 args=training_args,
                 train_dataset=train_dataset,
                 eval_dataset=eval_dataset,
-                tokenizer=self.tokenizer,
+                processing_class=self.tokenizer,
                 max_seq_length=self.config.max_length,
                 packing=False,
             )
