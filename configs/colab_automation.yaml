@@ -1,0 +1,179 @@
+# MethodThinker Colab自动化训练配置
+#
+# 用于参数化notebook执行和云端训练自动化
+# 更新日期: 2026-04-07
+#
+
+# =============================================================================
+# Google Cloud 项目配置
+# =============================================================================
+# 用于Google Drive API和Cloud Scheduler
+
+google_cloud:
+  # 项目ID（可选）
+  project_id: null                          # 填入您的GCP项目ID
+
+  # 服务账号凭据路径
+  credentials_path: null                    # 如: ~/.config/gcloud/service-account.json
+
+  # 区域
+  region: "us-central1"                     # Google Cloud区域
+
+# =============================================================================
+# Google Drive 配置
+# =============================================================================
+# 文件同步和结果存储
+
+google_drive:
+  # 是否启用Drive同步
+  enabled: true
+
+  # Drive文件夹结构
+  base_folder: "method-thinker-models"      # 根文件夹
+  data_folder: "training-data"              # 数据文件夹
+  results_folder: "training-results"        # 结果文件夹
+  notebooks_folder: "notebooks"             # Notebook文件夹
+
+# =============================================================================
+# 训练参数
+# =============================================================================
+# 默认训练参数（可通过命令行覆盖）
+
+training:
+  # 基座模型
+  base_model: "Qwen/Qwen2.5-Math-1.5B"
+
+  # 基础训练参数
+  epochs: 3
+  batch_size: 4                             # T4显存限制
+  learning_rate: 5e-5
+  max_length: 2048
+
+  # LoRA参数
+  lora_r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+
+  # HuggingFace镜像（国内加速）
+  hf_mirror: "https://hf-mirror.com"
+
+  # 数据限制
+  max_samples: 1000                         # 默认样本数限制
+
+# =============================================================================
+# 预设配置
+# =============================================================================
+# 快速启动训练配置
+
+presets:
+  # 快速验证训练
+  quick:
+    epochs: 1
+    max_samples: 100
+    batch_size: 4
+    description: "快速验证训练 - 约15分钟完成"
+
+  # 标准训练
+  standard:
+    epochs: 3
+    max_samples: 1000
+    batch_size: 4
+    description: "标准训练 - 约1小时完成"
+
+  # 完整训练
+  full:
+    epochs: 5
+    max_samples: 5000
+    batch_size: 4
+    gradient_accumulation_steps: 8
+    description: "完整训练 - 约3小时完成"
+
+# =============================================================================
+# 路径配置
+# =============================================================================
+# 本地和云端路径
+
+paths:
+  # Notebook模板路径
+  notebook_template: "notebooks/train_automated.ipynb"
+
+  # 执行后的notebook输出目录
+  output_notebook: "outputs/executed_notebooks/"
+
+  # 训练结果目录
+  results_dir: "outputs/colab_results/"
+
+  # 本地训练数据目录
+  local_data_dir: "data/train_data/"
+
+  # 本地知识库目录
+  local_kb_dir: "data/methodology_kb/"
+
+# =============================================================================
+# 调度配置
+# =============================================================================
+# 定时训练设置
+
+scheduling:
+  # 是否启用调度
+  enabled: false
+
+  # 调度器类型
+  scheduler_type: "local"                   # local 或 gcloud
+
+  # Cron表达式（示例）
+  # "0 9 * * *"    - 每天9点
+  # "0 9 * * 1"    - 每周一9点
+  # "0 9,21 * * *" - 每天9点和21点
+  # "0 */6 * * *"  - 每6小时
+  cron: null
+
+# =============================================================================
+# Colab运行配置
+# =============================================================================
+# Colab环境特定设置
+
+colab:
+  # 自动挂载Drive
+  auto_mount_drive: true
+
+  # 防断连设置
+  prevent_disconnect:
+    enabled: true
+    interval_minutes: 5
+
+  # 资源监控
+  resource_monitoring:
+    enabled: true
+    gpu_alert_threshold: 90                 # GPU显存告警阈值(%)
+    log_interval: 60                        # 日志间隔(秒)
+
+  # 自动保存
+  auto_save:
+    enabled: true
+    interval_minutes: 15                    # 自动保存间隔(分钟)
+
+# =============================================================================
+# 通知配置
+# =============================================================================
+# 训练完成通知（可选）
+
+notification:
+  # 邮件通知
+  email:
+    enabled: false
+    recipient: null
+
+  # Webhook通知
+  webhook:
+    enabled: false
+    url: null                               # 如: Slack/Discord webhook
+
+# =============================================================================
+# 日志配置
+# =============================================================================
+
+logging:
+  level: "INFO"
+  file: "outputs/logs/colab_automation.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
