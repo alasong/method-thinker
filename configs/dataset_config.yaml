@@ -1,0 +1,477 @@
+# MethodThinker 数据集配置
+#
+# 该配置文件定义了数据集管理、分割和平衡的参数设置
+# 文档: data/train_data/README.md
+
+# =============================================================================
+# 数据集分割配置
+# =============================================================================
+# 训练/验证/测试集的划分比例和策略
+
+split:
+  # 默认分割比例
+  default_ratio:
+    train: 0.8            # 训练集比例
+    val: 0.1              # 验证集比例
+    test: 0.1             # 测试集比例
+
+  # 特殊分割比例（按用途）
+  ratios:
+    # 标准分割
+    standard: [0.8, 0.1, 0.1]
+    # 小数据集分割（验证/测试比例稍大）
+    small_dataset: [0.7, 0.15, 0.15]
+    # 大数据集分割
+    large_dataset: [0.9, 0.05, 0.05]
+
+  # 分割策略
+  strategy:
+    stratify: true        # 按问题类型分层分割
+    shuffle: true         # 分割前打乱数据
+    seed: 42              # 随机种子（保证可复现）
+
+  # 输出路径
+  output:
+    directory: "data/train_data"
+    prefix: ""            # 文件前缀
+    format: "json"        # 输出格式
+
+# =============================================================================
+# 难度分布配置
+# =============================================================================
+# 各难度级别的目标分布比例
+
+difficulty:
+  # 难度级别定义 (1-5)
+  levels:
+    1:
+      name: "基础"
+      description: "基础概念和简单计算"
+      target_ratio: 0.15
+    2:
+      name: "入门"
+      description: "入门级竞赛题目"
+      target_ratio: 0.25
+    3:
+      name: "中等"
+      description: "中等难度竞赛题目"
+      target_ratio: 0.30
+    4:
+      name: "进阶"
+      description: "进阶竞赛题目"
+      target_ratio: 0.20
+    5:
+      name: "挑战"
+      description: "高难度竞赛题目"
+      target_ratio: 0.10
+
+  # 验证时的难度分配
+  validation_distribution:
+    min_samples_per_level: 50   # 每级别最少样本
+    balance_tolerance: 0.10     # 允许偏差
+
+  # 难度调整策略
+  adjustment:
+    enabled: true
+    method: "resample"          # resample, filter, hybrid
+    preserve_order: true        # 保持难度递进顺序
+
+# =============================================================================
+# 类别平衡配置
+# =============================================================================
+# 问题类型的类别平衡设置
+
+balance:
+  # 平衡策略
+  strategy: "hybrid"            # oversample, undersample, hybrid
+  target: "uniform"             # uniform, proportional, custom
+
+  # 目标分布
+  target_distribution:
+    # 各类型目标比例（uniform时此配置可选）
+    ALGEBRA: 0.20
+    GEOMETRY: 0.15
+    NUMBER_THEORY: 0.15
+    COMBINATORICS: 0.15
+    CALCULUS: 0.10
+    PROBABILITY: 0.10
+    LOGIC: 0.05
+    GENERAL: 0.10
+
+  # 平衡阈值
+  threshold:
+    imbalance_ratio: 2.0        # 不平衡阈值（最大类/最小类）
+    min_class_ratio: 0.05       # 最小类占比阈值
+    max_deviation: 0.15         # 最大偏差阈值
+
+  # 平衡方法参数
+  oversample:
+    max_multiplier: 3           # 过采样最大倍数
+    method: "random"            # random, synthetic
+
+  undersample:
+    min_keep_ratio: 0.3         # 欠采样保留最小比例
+    method: "random"            # random, centroid
+
+  hybrid:
+    target_count: "median"      # median, mean, custom
+    custom_target: null         # 自定义目标数量
+
+# =============================================================================
+# 问题类型配置
+# =============================================================================
+# 有效问题类型列表及其属性
+
+problem_types:
+  # 有效问题类型
+  valid_types:
+    - ALGEBRA                   # 代数
+    - GEOMETRY                  # 几何
+    - NUMBER_THEORY             # 数论
+    - COMBINATORICS             # 组合
+    - CALCULUS                  # 微积分
+    - PROBABILITY               # 概率
+    - LOGIC                     # 逻辑推理
+    - GENERAL                   # 通用问题
+
+  # 类型别名映射
+  aliases:
+    algebra: ALGEBRA
+    alg: ALGEBRA
+    geo: GEOMETRY
+    geometry: GEOMETRY
+    nt: NUMBER_THEORY
+    number_theory: NUMBER_THEORY
+    comb: COMBINATORICS
+    combinatorics: COMBINATORICS
+    calc: CALCULUS
+    calculus: CALCULUS
+    prob: PROBABILITY
+    probability: PROBABILITY
+    logic: LOGIC
+    general: GENERAL
+    misc: GENERAL
+
+  # 类型层级（用于细粒度分类）
+  hierarchy:
+    ALGEBRA:
+      subtypes:
+        - equations             # 方程
+        - polynomials           # 多项式
+        - sequences             # 序列
+        - inequalities          # 不等式
+    GEOMETRY:
+      subtypes:
+        - plane                 # 平面几何
+        - solid                 # 立体几何
+        - analytic              # 解析几何
+    NUMBER_THEORY:
+      subtypes:
+        - divisibility          # 整除
+        - primes                # 质数
+        - modular               # 模运算
+        - sequences             # 数论序列
+
+# =============================================================================
+# 数据验证配置
+# =============================================================================
+# 数据集验证的规则和阈值
+
+validation:
+  # 必填字段
+  required_fields:
+    - problem_id                # 问题ID
+    - problem                   # 问题描述
+    - problem_type              # 问题类型
+    - difficulty                # 难度级别
+    - solution_steps            # 解答步骤
+
+  # 可选字段
+  optional_fields:
+    - candidate_methods         # 候选方法
+    - selected_method           # 选择的方法
+    - selection_reasoning       # 选择推理
+    - solution_annotations      # 步骤注解
+    - reflection                # 反思内容
+    - source                    # 数据来源
+    - verified                  # 验证状态
+
+  # 字段约束
+  constraints:
+    problem_id:
+      unique: true              # 必须唯一
+      pattern: "[A-Z]{2,4}[0-9]{4,6}"  # ID格式
+    difficulty:
+      min: 1
+      max: 5
+      type: integer
+    solution_steps:
+      min_length: 1             # 至少有1个步骤
+      max_length: 50            # 最多50个步骤
+    problem:
+      min_length: 10            # 问题至少10字符
+      max_length: 5000          # 问题最多5000字符
+
+  # 去重配置
+  deduplication:
+    enabled: true
+    method: "problem_id"        # problem_id, problem_content, semantic
+    fuzzy_match_threshold: 0.95 # 语义去重阈值
+
+# =============================================================================
+# 数据来源配置
+# =============================================================================
+# 数据集来源的管理和权重
+
+sources:
+  # 数据来源定义
+  defined_sources:
+    aime:
+      name: "AIME (American Invitational Mathematics Examination)"
+      weight: 1.0
+      difficulty_range: [3, 5]
+    amc:
+      name: "AMC (American Mathematics Competition)"
+      weight: 1.0
+      difficulty_range: [2, 4]
+    hmmt:
+      name: "HMMT (Harvard-MIT Mathematics Tournament)"
+      weight: 1.0
+      difficulty_range: [3, 5]
+    olympiad:
+      name: "各类数学奥林匹克"
+      weight: 1.2
+      difficulty_range: [4, 5]
+    textbook:
+      name: "教材习题"
+      weight: 0.8
+      difficulty_range: [1, 3]
+    generated:
+      name: "AI生成数据"
+      weight: 0.7
+      difficulty_range: [1, 5]
+
+  # 来源优先级（合并时使用）
+  priority:
+    - aime
+    - hmmt
+    - amc
+    - olympiad
+    - textbook
+    - generated
+
+  # 来源验证
+  verification:
+    require_source_field: true
+    allow_unknown_sources: false
+    default_source: "unknown"
+
+# =============================================================================
+# 方法论配置
+# =============================================================================
+# 方法选择和方法论注入相关配置
+
+methodology:
+  # 候选方法数量
+  candidate_count:
+    min: 3                      # 最少候选方法
+    max: 10                     # 最多候选方法
+    default: 5                  # 默认数量
+
+  # 方法选择配置
+  selection:
+    require_reasoning: true     # 必须有选择推理
+    min_reasoning_length: 50    # 推理最少50字符
+    allow_multiple_methods: true  # 允许多种方法
+
+  # 常用方法列表（用于统计）
+  common_methods:
+    - substitution              # 代入法
+    - induction                 # 归纳法
+    - contradiction             # 反证法
+    - construction              # 构造法
+    - extremal                  # 极值法
+    - invariants                # 不变量法
+    - coloring                  # 染色法
+    - parity                    # 奇偶性分析
+    - recursion                 # 递归法
+    - symmetry                  # 对称性分析
+
+  # 方法与类型关联
+  method_type_mapping:
+    ALGEBRA: [substitution, induction, contradiction, construction]
+    GEOMETRY: [construction, symmetry, coordinates, transformation]
+    NUMBER_THEORY: [induction, contradiction, invariants, modular]
+    COMBINATORICS: [construction, extremal, coloring, parity, recursion]
+    CALCULUS: [limits, derivatives, integration]
+    PROBABILITY: [counting, symmetry, expectation]
+    LOGIC: [contradiction, deduction, cases]
+    GENERAL: [construction, contradiction, induction]
+
+# =============================================================================
+# 输出配置
+# =============================================================================
+# 数据集输出的格式和路径设置
+
+output:
+  # 默认输出格式
+  format: "json"                # json, jsonl, parquet
+
+  # 输出目录
+  directories:
+    train: "data/train_data"
+    validation: "data/validation_data"
+    test: "data/test_sets"
+    processed: "data/processed"
+    backup: "data/backups"
+
+  # 文件命名
+  naming:
+    pattern: "{type}_{date}_{count}"
+    date_format: "%Y%m%d"
+    include_hash: false
+
+  # 输出选项
+  options:
+    pretty_print: true          # JSON美化输出
+    include_metadata: true      # 包含元数据
+    compress_output: false      # 压缩输出
+    encoding: "utf-8"           # 编码格式
+
+# =============================================================================
+# 数据增强配置
+# =============================================================================
+# 数据增强策略和参数
+
+augmentation:
+  # 是否启用增强
+  enabled: true
+
+  # 增强方法
+  methods:
+    paraphrase:
+      enabled: true
+      ratio: 0.2                # 增强比例
+      preserve_structure: true  # 保持结构
+    difficulty_adjust:
+      enabled: true
+      ratio: 0.1
+      range: [-1, 1]            # 难度调整范围
+    method_variation:
+      enabled: true
+      ratio: 0.15
+      max_variations: 3         # 每题最多变体数
+
+  # 增强约束
+  constraints:
+    preserve_answer: true       # 保持答案一致
+    preserve_type: true         # 保持类型一致
+    max_augment_ratio: 0.5      # 最大增强比例
+
+# =============================================================================
+# 统计配置
+# =============================================================================
+# 统计分析参数
+
+statistics:
+  # 统计维度
+  dimensions:
+    - total_count               # 总数统计
+    - type_distribution         # 类型分布
+    - difficulty_distribution   # 难度分布
+    - source_distribution       # 来源分布
+    - method_usage              # 方法使用统计
+    - verification_rate         # 验证比例
+
+  # 报告格式
+  report_format: "markdown"     # markdown, json, html
+
+  # 统计输出
+  output:
+    save_statistics: true
+    statistics_path: "data/statistics/"
+    include_charts: false       # 是否包含图表（需要额外依赖）
+
+# =============================================================================
+# 缓存配置
+# =============================================================================
+# 数据处理缓存设置
+
+cache:
+  # 是否启用缓存
+  enabled: true
+
+  # 缓存位置
+  directory: ".cache/datasets"
+
+  # 缓存策略
+  strategy:
+    ttl: 3600                   # 缓存有效期（秒）
+    max_size: 1000              # 最大缓存条目
+    compress: true              # 缓存压缩
+
+  # 缓存键
+  key_format: "{path}_{mtime}"  # 路径 + 修改时间
+
+# =============================================================================
+# 日志配置
+# =============================================================================
+# 操作日志设置
+
+logging:
+  level: "INFO"                 # DEBUG, INFO, WARNING, ERROR
+  path: "logs/dataset_manager.log"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  # 操作记录
+  track_operations:
+    - load                      # 记录加载操作
+    - save                      # 记录保存操作
+    - merge                     # 记录合并操作
+    - split                     # 记录分割操作
+    - balance                   # 记录平衡操作
+
+# =============================================================================
+# 性能配置
+# =============================================================================
+# 性能优化参数
+
+performance:
+  # 并行处理
+  parallel:
+    enabled: true
+    max_workers: 4              # 最大工作线程数
+
+  # 批处理
+  batch:
+    size: 1000                  # 批处理大小
+    enabled: true
+
+  # 内存管理
+  memory:
+    max_memory_mb: 2048         # 最大内存使用（MB）
+    gc_interval: 100            # GC间隔（操作数）
+
+# =============================================================================
+# 安全配置
+# =============================================================================
+# 数据安全和备份设置
+
+safety:
+  # 备份配置
+  backup:
+    enabled: true
+    before_modify: true         # 修改前备份
+    max_backups: 10             # 最大备份数
+    backup_dir: "data/backups"
+
+  # 写保护
+  write_protection:
+    protected_paths:
+      - "data/test_sets/*.json"  # 测试集保护
+    require_confirmation: true   # 需要确认
+
+  # 数据校验
+  checksum:
+    enabled: true
+    algorithm: "md5"            # md5, sha256

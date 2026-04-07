@@ -1,0 +1,339 @@
+# MethodThinker 训练配置
+#
+# 该配置文件定义了方法论注入训练的参数设置
+# 文档: docs/user_guide.md
+
+# =============================================================================
+# 基础模型配置
+# =============================================================================
+# 基座模型选择，建议使用数学推理能力强的模型
+
+model:
+  base_model: "Qwen/Qwen2.5-Math-1.5B"    # 基座模型路径
+  trust_remote_code: true                  # 是否信任远程代码
+  use_flash_attention: true                # 使用Flash Attention加速
+
+  # 模型加载配置
+  loading:
+    torch_dtype: "bfloat16"                # 数据类型
+    device_map: "auto"                     # 设备映射
+    low_cpu_mem_usage: true                # 低CPU内存使用
+
+# =============================================================================
+# 训练参数
+# =============================================================================
+# 核心训练超参数设置
+
+training:
+  # 基础训练参数
+  num_epochs: 3                            # 训练轮数
+  batch_size: 8                            # 批大小
+  gradient_accumulation_steps: 4           # 梯度累积步数
+
+  # 优化器参数
+  learning_rate: 5e-5                      # 学习率
+  weight_decay: 0.01                       # 权重衰减
+  warmup_ratio: 0.1                        # warmup比例
+  warmup_steps: 0                          # warmup步数（若设置则忽略ratio）
+
+  # 学习率调度
+  lr_scheduler_type: "cosine"              # 学习率调度器类型
+  lr_scheduler_kwargs: {}                  # 调度器额外参数
+
+  # 梯度裁剪
+  max_grad_norm: 1.0                       # 最大梯度范数
+
+  # 序列长度
+  max_length: 4096                         # 最大序列长度
+  max_prompt_length: 1024                  # 最大提示长度
+
+  # 混合精度
+  fp16: false                              # FP16训练
+  bf16: true                               # BF16训练
+
+  # 其他
+  seed: 42                                 # 随机种子
+  dataloader_num_workers: 4                # 数据加载器工作数
+  dataloader_pin_memory: true              # 固定内存
+
+# =============================================================================
+# 方法论注入训练参数
+# =============================================================================
+# 方法论注入训练的特殊参数
+
+methodology_injection:
+  # 任务权重
+  weights:
+    method_selection: 0.3                  # 方法选择任务权重
+    solution_generation: 0.4               # 解答生成任务权重
+    reflection: 0.3                        # 反思任务权重
+
+  # 方法选择配置
+  method_selection:
+    num_candidates: 5                      # 候选方法数量
+    include_reasoning: true                # 包含选择推理
+    temperature: 0.7                       # 生成温度
+
+  # 解答生成配置
+  solution_generation:
+    max_steps: 20                          # 最大解答步骤数
+    include_annotations: true              # 包含步骤注解
+    temperature: 0.3                       # 生成温度
+
+  # 反思配置
+  reflection:
+    max_length: 500                        # 最大反思长度
+    include_critique: true                 # 包含批判
+    include_improvement: true              # 包含改进建议
+
+# =============================================================================
+# 多样性训练参数
+# =============================================================================
+# 训练模型使用多种方法解决同一问题
+
+diversity_training:
+  enabled: true                            # 是否启用多样性训练
+  methods_per_problem: 4                   # 每题使用的方法数
+
+  # 方法采样策略
+  sampling_strategy: "diverse"             # diverse, random, weighted
+
+  # 多样性奖励
+  diversity_reward:
+    enabled: true                          # 启用多样性奖励
+    weight: 0.2                            # 奖励权重
+    min_method_gap: 0.3                    # 方法差异最小值
+
+# =============================================================================
+# 反思强化训练参数
+# =============================================================================
+# 强化模型的自我反思能力
+
+reflection_training:
+  enabled: true                            # 是否启用反思训练
+
+  # 反思模式
+  modes:
+    - self_critique                        # 自我批判
+    - alternative_solution                 # 替代解法
+    - error_analysis                       # 错误分析
+
+  # 强化参数
+  reinforcement:
+    reward_scale: 1.0                      # 奖励缩放
+    penalty_for_error: 0.5                 # 错误惩罚
+
+# =============================================================================
+# 数据配置
+# =============================================================================
+# 训练数据相关配置
+
+data:
+  # 训练数据路径
+  train_path: "data/train_data/train.json"
+  val_path: "data/train_data/val.json"
+  test_path: "data/train_data/test.json"
+
+  # 知识库路径
+  kb_path: "data/methodology_kb/v1/math_methods.yaml"
+
+  # 数据格式
+  format: "json"                           # json, jsonl, parquet
+
+  # 数据预处理
+  preprocessing:
+    shuffle: true                          # 打乱数据
+    filter_unverified: false               # 过滤未验证数据
+    max_samples: null                      # 最大样本数
+
+  # 数据增强
+  augmentation:
+    enabled: true                          # 启用数据增强
+    methods:
+      - paraphrase                         # 同义改写
+      - method_variation                   # 方法变体
+      - difficulty_adjust                  # 难度调整
+    ratio: 0.3                             # 增强比例
+
+# =============================================================================
+# 输出配置
+# =============================================================================
+# 输出和保存配置
+
+output:
+  # 输出目录
+  output_dir: "outputs/checkpoints"
+
+  # 检查点保存
+  save_strategy: "epoch"                   # epoch, steps, no
+  save_steps: 500                          # 保存步数（若save_strategy=steps）
+  save_total_limit: 3                      # 检查点总数限制
+
+  # 日志配置
+  logging:
+    logging_dir: "outputs/logs"
+    logging_steps: 100                     # 日志步数
+    log_level: "INFO"                      # 日志级别
+
+  # 评估配置
+  evaluation:
+    eval_strategy: "epoch"                 # epoch, steps, no
+    eval_steps: 500                        # 评估步数
+    eval_delay: 0                          # 评估延迟步数
+
+  # 报告配置
+  report_to:
+    - "tensorboard"                        # tensorboard, wandb, none
+  project_name: "method-thinker"
+  run_name: null                           # 自动生成
+
+# =============================================================================
+# 分布式训练配置
+# =============================================================================
+# 多GPU训练配置
+
+distributed:
+  enabled: false                           # 是否启用分布式
+
+  # 分布式策略
+  backend: "nccl"                          # nccl, gloo
+
+  # 模型并行
+  model_parallel:
+    enabled: false
+    world_size: 1                          # 总GPU数
+
+  # 数据并行
+  data_parallel:
+    enabled: false
+    world_size: 1
+
+  # DeepSpeed配置
+  deepspeed:
+    enabled: false
+    config_path: null                      # DeepSpeed配置文件路径
+
+# =============================================================================
+# 量化配置
+# =============================================================================
+# 模型量化配置（用于节省显存）
+
+quantization:
+  enabled: false                           # 是否启用量化
+
+  # 量化方法
+  method: "bitsandbytes"                   # bitsandbytes, gptq, awq
+
+  # 量化参数
+  bits: 4                                  # 量化位数
+  group_size: 128                          # 组大小
+
+  # LoRA配置（替代全量微调）
+  lora:
+    enabled: false                         # 是否使用LoRA
+    lora_r: 16                             # LoRA秩
+    lora_alpha: 32                         # LoRA alpha
+    lora_dropout: 0.05                     # LoRA dropout
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+      - "k_proj"
+      - "o_proj"
+      - "gate_proj"
+      - "up_proj"
+      - "down_proj"
+
+# =============================================================================
+# 推理优化配置
+# =============================================================================
+# 推理时优化配置
+
+inference:
+  # vLLM加速
+  vllm:
+    enabled: false                         # 是否使用vLLM
+    tensor_parallel_size: 1                # 张量并行大小
+
+  # 生成参数
+  generation:
+    max_new_tokens: 1024                   # 最大新生成token数
+    temperature: 0.7                       # 温度
+    top_p: 0.9                             # Top-p
+    top_k: 50                              # Top-k
+    do_sample: true                        # 是否采样
+    repetition_penalty: 1.1                # 重复惩罚
+
+# =============================================================================
+# 评估配置
+# =============================================================================
+# 模型评估配置
+
+evaluation:
+  # 评估基准
+  benchmarks:
+    - name: "aime25"
+      path: "data/test_sets/aime25.json"
+      pass_k: 64                           # Pass@K
+    - name: "aime24"
+      path: "data/test_sets/aime24.json"
+      pass_k: 16
+    - name: "hmmt"
+      path: "data/test_sets/hmmt.json"
+      pass_k: 8
+
+  # 评估参数
+  params:
+    num_samples: 64                        # 每题采样数
+    temperature: 0.7                       # 采样温度
+    timeout: 120                           # 单题超时（秒）
+
+  # Pass@K计算
+  pass_at_k:
+    k_values: [1, 8, 16, 64]               # K值列表
+    confidence_level: 0.95                 # 置信水平
+
+# =============================================================================
+# 早停配置
+# =============================================================================
+# 防止过拟合的早停配置
+
+early_stopping:
+  enabled: true                            # 是否启用早停
+  patience: 3                              # 等待轮数
+  threshold: 0.001                         # 改进阈值
+  metric: "eval_loss"                      # 监控指标
+  mode: "min"                              # min, max
+
+# =============================================================================
+# 恢复训练配置
+# =============================================================================
+# 从检查点恢复训练
+
+resume:
+  enabled: false                           # 是否恢复训练
+  checkpoint_path: null                    # 检查点路径
+  resume_from_optimizer: true              # 恢复优化器状态
+  resume_from_scheduler: true              # 恢复调度器状态
+
+# =============================================================================
+# 安全与调试配置
+# =============================================================================
+# 调试和安全相关配置
+
+debug:
+  enabled: false                           # 调试模式
+  save_inputs: true                        # 保存输入数据
+  save_outputs: true                       # 保存输出数据
+  max_debug_samples: 100                   # 最大调试样本数
+
+safety:
+  # GPU监控
+  gpu_monitoring:
+    enabled: true                          # 启用GPU监控
+    log_interval: 60                       # 日志间隔（秒）
+    alert_threshold: 90                    # 内存告警阈值（%）
+
+  # 内存管理
+  memory:
+    empty_cache_steps: 1000                # 清空缓存步数
+    gc_interval: 500                       # GC间隔步数

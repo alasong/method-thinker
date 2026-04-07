@@ -1,0 +1,865 @@
+# MethodThinker 种子方法论知识库
+# 版本: v0
+# 创建时间: 2026-04-07
+# 描述: 核心方法论种子数据，用于冷启动
+
+methods:
+  # ==================== 代数方法 ====================
+
+  - method_id: "ALG_001"
+    name: "变量替换法"
+    category: "ALGEBRA"
+    description: |
+      通过引入新变量来简化复杂表达式的结构，是代数变形中最基本且重要的技巧之一。
+      主要适用于表达式中存在重复模式、对称结构或复杂嵌套的情况。
+      合适的变量替换可以将复杂问题转化为简单问题，起到化繁为简的作用。
+    applicability:
+      - condition: "表达式中存在重复或对称结构"
+        keywords: ["对称", "重复", "复合函数", "嵌套", "齐次"]
+        problem_types: ["方程求解", "不等式证明", "函数最值", "代数恒等式"]
+      - condition: "表达式过于复杂，直接处理困难"
+        keywords: ["复杂", "繁琐", "多层", "嵌套根式"]
+        problem_types: ["代数恒等式", "极限计算", "积分计算"]
+    template:
+      steps:
+        - "识别表达式中的重复模式或对称结构"
+        - "选择合适的替换变量，设 t = ...，使得新表达式更简洁"
+        - "将原表达式转化为关于 t 的新表达式"
+        - "在新变量下求解问题"
+        - "将结果回代求解原变量，并验证解的有效性"
+      common_tricks:
+        - "对于 a+b 和 ab 同时出现的问题，考虑令 t = a+b 或 t = ab"
+        - "对于 √(ax²+bx+c) 型表达式，常考虑三角替换或双曲替换"
+        - "对于齐次式，可令 t = y/x 进行简化"
+        - "倒数替换 t = 1/x 有时能简化分式"
+      pitfall_warnings:
+        - "注意新变量的取值范围，回代时需验证"
+        - "三角替换需考虑角度的范围限制"
+        - "替换后可能产生增根，需检验"
+    difficulty: 3
+    frequency: 0.85
+    related_methods: ["ALG_002", "ALG_005"]
+    examples: ["AIME_2023_001", "AIME_2024_005"]
+
+  - method_id: "ALG_002"
+    name: "配方法"
+    category: "ALGEBRA"
+    description: |
+      将二次型表达式化为完全平方形式，是处理二次表达式的基本技巧。
+      通过配方可以利用完全平方的非负性来求解最值、证明不等式或简化计算。
+      配方法是解决二次函数问题的核心工具，应用极其广泛。
+    applicability:
+      - condition: "表达式包含二次项"
+        keywords: ["二次", "平方", "x²", "ax²+bx+c", "抛物线"]
+        problem_types: ["二次函数", "不等式证明", "最值问题", "圆的方程"]
+      - condition: "需要利用平方的非负性"
+        keywords: ["非负", "最值", "最小值", "最大值"]
+    template:
+      steps:
+        - "提取二次项系数（如需要）"
+        - "对变量部分配方：ax²+bx = a(x + b/2a)² - b²/4a"
+        - "整理得到完全平方形式"
+        - "利用完全平方的非负性分析问题"
+        - "得出结论或求解结果"
+      common_tricks:
+        - "配方后可以应用均值不等式或Cauchy不等式"
+        - "可以用于求二次函数的对称轴和顶点"
+        - "对于圆的方程，配方可确定圆心和半径"
+        - "配方法与判别式法密切相关"
+      pitfall_warnings:
+        - "注意二次项系数的正负对最值的影响"
+        - "配方时系数的计算容易出错，需仔细"
+        - "配方后变量的取值范围可能改变"
+    difficulty: 2
+    frequency: 0.92
+    related_methods: ["ALG_001", "ALG_003"]
+    examples: ["AIME_2023_003", "AIME_2024_002"]
+
+  - method_id: "ALG_003"
+    name: "因式分解法"
+    category: "ALGEBRA"
+    description: |
+      将多项式分解为若干因式的乘积，是代数变形的核心技能。
+      因式分解可以将复杂的表达式简化，揭示其内在结构，
+      是求解方程、证明恒等式、简化分式的重要工具。
+    applicability:
+      - condition: "多项式需要简化或求根"
+        keywords: ["因式", "分解", "多项式", "根", "零点"]
+        problem_types: ["方程求解", "恒等式证明", "分式化简", "数论问题"]
+      - condition: "表达式有明显的因子结构"
+        keywords: ["公因式", "分组", "对称"]
+    template:
+      steps:
+        - "观察多项式的结构和特点"
+        - "尝试提取公因式"
+        - "选择合适的分解方法（分组、公式、十字相乘等）"
+        - "持续分解直到无法继续"
+        - "利用分解结果解决问题"
+      common_tricks:
+        - "常见的分解公式：平方差、完全平方、立方和差"
+        - "对称式常可用对称分解"
+        - "高次多项式可能需要综合除法或试根"
+        - "分组分解要有目标意识"
+      pitfall_warnings:
+        - "分解要彻底，不能有遗漏"
+        - "分解后的因式要检查是否正确"
+        - "注意系数和符号的正确性"
+    difficulty: 2
+    frequency: 0.88
+    related_methods: ["ALG_002", "ALG_004"]
+    examples: ["AIME_2023_007", "AIME_2024_008"]
+
+  - method_id: "ALG_004"
+    name: "韦达定理应用"
+    category: "ALGEBRA"
+    description: |
+      利用韦达定理建立方程的根与系数之间的联系，无需具体求根即可解决问题。
+      韦达定理将根的对称多项式与方程系数联系起来，
+      在处理与根相关的问题时非常高效，避免了复杂的求根过程。
+    applicability:
+      - condition: "涉及方程根的问题"
+        keywords: ["根", "韦达", "求根", "二次方程", "高次方程"]
+        problem_types: ["方程求解", "根的关系", "构造方程", "对称问题"]
+      - condition: "已知根的某些性质求系数或相反"
+        keywords: ["根与系数", "根之和", "根之积"]
+    template:
+      steps:
+        - "识别问题中的方程和根"
+        - "写出韦达定理：对于ax²+bx+c=0，x₁+x₂=-b/a，x₁x₂=c/a"
+        - "将题目条件转化为根的对称式的形式"
+        - "利用韦达定理建立方程或不等式"
+        - "求解并验证结果"
+      common_tricks:
+        - "x₁²+x₂² = (x₁+x₂)² - 2x₁x₂"
+        - "|x₁-x₂| = √((x₁+x₂)² - 4x₁x₂)"
+        - "高次方程韦达定理同样适用"
+        - "可以逆向构造方程"
+      pitfall_warnings:
+        - "使用韦达定理前需确认方程有根"
+        - "注意根的判别式条件"
+        - "对称式才可直接应用韦达定理"
+    difficulty: 3
+    frequency: 0.82
+    related_methods: ["ALG_003", "ALG_005"]
+    examples: ["AIME_2023_012", "AIME_2024_010"]
+
+  - method_id: "ALG_005"
+    name: "齐次化方法"
+    category: "ALGEBRA"
+    description: |
+      将非齐次问题转化为齐次问题，利用齐次式的性质简化问题。
+      齐次式具有比例不变性，可以通过引入比值变量来降维，
+      是处理多变量问题的有效技巧。
+    applicability:
+      - condition: "表达式是齐次式或可化为齐次式"
+        keywords: ["齐次", "比例", "比值", "对称"]
+        problem_types: ["不等式证明", "最值问题", "分式求值"]
+      - condition: "多变量问题需要降维处理"
+        keywords: ["多变量", "降维", "消元"]
+    template:
+      steps:
+        - "识别齐次结构或构造齐次式"
+        - "引入比值变量，如 t = y/x"
+        - "消去一个变量，降低问题的维度"
+        - "在降维后的问题上求解"
+        - "返回原变量的解"
+      common_tricks:
+        - "将常数表示为齐次式，如 1 = x/x + y/y"
+        - "乘以适当的齐次因子可构造齐次式"
+        - "利用齐次性可以假设特定值简化计算"
+        - "对偶式技巧常与齐次化配合使用"
+      pitfall_warnings:
+        - "注意比值变量的取值范围"
+        - "特殊点（如x=0）需要单独考虑"
+        - "齐次化可能掩盖某些限制条件"
+    difficulty: 4
+    frequency: 0.65
+    related_methods: ["ALG_001", "ALG_002"]
+    examples: ["AIME_2023_015", "AIME_2024_012"]
+
+  # ==================== 几何方法 ====================
+
+  - method_id: "GEO_001"
+    name: "坐标化方法"
+    category: "GEOMETRY"
+    description: |
+      将几何问题转化为代数计算问题，通过建立坐标系用代数方法解决几何问题。
+      坐标法将几何图形用坐标和方程表示，使得抽象的几何关系变得具体可计算，
+      特别适合涉及距离、角度计算的问题。
+    applicability:
+      - condition: "涉及距离、角度的计算问题"
+        keywords: ["距离", "角度", "坐标", "位置", "计算"]
+        problem_types: ["解析几何", "距离最值", "角度计算", "轨迹问题"]
+      - condition: "纯几何方法难以处理"
+        keywords: ["复杂", "计算量大", "几何关系不明显"]
+    template:
+      steps:
+        - "选择合适的坐标系（通常选取特殊点为原点）"
+        - "将几何元素用坐标表示"
+        - "将几何条件转化为代数方程或不等式"
+        - "用代数方法求解问题"
+        - "将结果翻译回几何语言并验证"
+      common_tricks:
+        - "选择特殊位置建系可简化计算"
+        - "利用对称性选择坐标轴方向"
+        - "向量和坐标可以相互转化"
+        - "参数方程有时更方便"
+      pitfall_warnings:
+        - "注意验证特殊情况"
+        - "代数解可能对应多个几何情况"
+        - "坐标选择不当会增加计算量"
+    difficulty: 3
+    frequency: 0.88
+    related_methods: ["GEO_002", "GEO_005"]
+    examples: ["AIME_2023_004", "AIME_2024_006"]
+
+  - method_id: "GEO_002"
+    name: "向量法"
+    category: "GEOMETRY"
+    description: |
+      利用向量的运算解决几何问题，向量既有大小又有方向，
+      可以统一处理长度和角度问题。向量法特别适合处理垂直、平行、
+      共线等几何关系，运算简洁且具有代数化的优势。
+    applicability:
+      - condition: "涉及长度和角度的几何问题"
+        keywords: ["向量", "长度", "角度", "垂直", "平行"]
+        problem_types: ["几何证明", "距离计算", "角度计算", "位置关系"]
+      - condition: "需要用代数方法处理几何关系"
+        keywords: ["代数化", "运算", "坐标"]
+    template:
+      steps:
+        - "选择适当的向量表示几何元素"
+        - "将几何条件用向量关系表示"
+        - "进行向量运算（点乘、叉乘等）"
+        - "从向量结果得到几何结论"
+      common_tricks:
+        - "a·b=0 表示垂直"
+        - "向量共线的条件"
+        - "利用向量分解处理几何变换"
+        - "复数可以表示二维向量"
+      pitfall_warnings:
+        - "注意向量的起点和终点"
+        - "点乘和叉乘的意义不同"
+        - "二维和三维向量有区别"
+    difficulty: 3
+    frequency: 0.75
+    related_methods: ["GEO_001", "GEO_003"]
+    examples: ["AIME_2023_008", "AIME_2024_009"]
+
+  - method_id: "GEO_003"
+    name: "几何变换"
+    category: "GEOMETRY"
+    description: |
+      利用平移、旋转、对称、相似等变换将几何图形变换到更有利的位置，
+      从而简化问题或发现隐藏的关系。几何变换是解决复杂几何问题的有力工具。
+    applicability:
+      - condition: "图形具有对称性或特殊位置关系"
+        keywords: ["对称", "旋转", "翻折", "平移", "相似"]
+        problem_types: ["几何证明", "最值问题", "轨迹问题"]
+      - condition: "需要改变图形的相对位置"
+        keywords: ["移动", "变换", "重构"]
+    template:
+      steps:
+        - "分析图形的特点和对称性"
+        - "选择合适的变换类型"
+        - "执行几何变换"
+        - "在变换后的图形上分析问题"
+        - "返回原图形得到结论"
+      common_tricks:
+        - "对称变换处理对称图形"
+        - "旋转变换处理等长线段"
+        - "相似变换处理比例问题"
+        - "反射变换处理角平分线问题"
+      pitfall_warnings:
+        - "变换后注意对应点的位置"
+        - "保持变换的不变量"
+        - "多次变换要注意顺序"
+    difficulty: 4
+    frequency: 0.62
+    related_methods: ["GEO_004", "GEO_001"]
+    examples: ["AIME_2023_010", "AIME_2024_011"]
+
+  - method_id: "GEO_004"
+    name: "辅助线构造"
+    category: "GEOMETRY"
+    description: |
+      通过添加辅助线构造新的几何元素，揭示隐藏的几何关系，
+      是解决几何问题的经典技巧。合适的辅助线可以将分散的条件联系起来，
+      创造应用定理的机会。
+    applicability:
+      - condition: "题目条件分散，难以直接联系"
+        keywords: ["分散", "联系", "构造", "辅助线"]
+        problem_types: ["几何证明", "长度计算", "角度计算"]
+      - condition: "需要创造应用定理的条件"
+        keywords: ["定理", "条件", "模型"]
+    template:
+      steps:
+        - "分析已知条件和目标结论"
+        - "识别缺少的几何关系"
+        - "选择合适的辅助线类型"
+        - "添加辅助线并证明相关性质"
+        - "利用新构造解决问题"
+      common_tricks:
+        - "中点连线构造中位线"
+        - "角平分线上的点到两边距离相等"
+        - "圆的辅助线常用半径和弦"
+        - "梯形的高和对角线是常见辅助线"
+      pitfall_warnings:
+        - "辅助线要有目的性"
+        - "注意辅助线的存在性证明"
+        - "不要过度添加辅助线"
+    difficulty: 4
+    frequency: 0.78
+    related_methods: ["GEO_003", "GEO_005"]
+    examples: ["AIME_2023_011", "AIME_2024_007"]
+
+  - method_id: "GEO_005"
+    name: "面积法"
+    category: "GEOMETRY"
+    description: |
+      利用面积关系解决几何问题，面积是几何中的一个重要桥梁，
+      可以联系长度、角度、比例等多种几何量。面积法特别适合
+      处理比例关系和平行问题。
+    applicability:
+      - condition: "涉及面积、比例、平行的问题"
+        keywords: ["面积", "比例", "平行", "相似"]
+        problem_types: ["比例问题", "长度计算", "平行判定"]
+      - condition: "需要建立几何量之间的关系"
+        keywords: ["关系", "联系", "桥梁"]
+    template:
+      steps:
+        - "识别与面积相关的几何元素"
+        - "选择合适的面积公式或方法"
+        - "建立面积与其他几何量的关系"
+        - "利用面积关系推导结论"
+      common_tricks:
+        - "等底等高三角形面积相等"
+        - "同底三角形面积比等于高之比"
+        - "平行线间的距离相等"
+        - "面积割补法"
+      pitfall_warnings:
+        - "注意面积的单位和正负"
+        - "面积法适用于平面图形"
+        - "比例关系要确认对应边"
+    difficulty: 3
+    frequency: 0.68
+    related_methods: ["GEO_004", "GEO_001"]
+    examples: ["AIME_2023_014", "AIME_2024_013"]
+
+  # ==================== 数论方法 ====================
+
+  - method_id: "NUM_001"
+    name: "模运算"
+    category: "NUMBER_THEORY"
+    description: |
+      模运算是研究整数整除性和余数性质的基本工具。
+      通过取模可以将无限整数集化为有限等价类，
+      简化问题并发现周期性规律。
+    applicability:
+      - condition: "涉及整除、余数的问题"
+        keywords: ["整除", "余数", "模", "同余"]
+        problem_types: ["整除性", "余数问题", "周期性"]
+      - condition: "需要研究整数被某数除后的性质"
+        keywords: ["除", "剩余", "周期"]
+    template:
+      steps:
+        - "选择合适的模数"
+        - "将问题中的数取模"
+        - "利用模运算的性质简化问题"
+        - "从模运算结果得出结论"
+      common_tricks:
+        - "a ≡ b (mod n) ⟺ n|(a-b)"
+        - "模运算保持加减乘"
+        - "费马小定理：a^(p-1) ≡ 1 (mod p)"
+        - "中国剩余定理"
+      pitfall_warnings:
+        - "模运算的除法要小心"
+        - "注意模数的选取"
+        - "负数的模要注意定义"
+    difficulty: 3
+    frequency: 0.82
+    related_methods: ["NUM_002", "NUM_003"]
+    examples: ["AIME_2023_002", "AIME_2024_003"]
+
+  - method_id: "NUM_002"
+    name: "裴蜀定理"
+    category: "NUMBER_THEORY"
+    description: |
+      裴蜀定理（Bezout定理）指出：对于整数a和b，
+      存在整数x和y使得ax+by=gcd(a,b)。
+      这是数论中的基本定理，处理整除和线性Diophantine方程的重要工具。
+    applicability:
+      - condition: "涉及最大公因数的问题"
+        keywords: ["最大公因数", "gcd", "整除", "线性组合"]
+        problem_types: ["整除性", "方程求解", "存在性证明"]
+      - condition: "需要找到整数解的线性方程"
+        keywords: ["线性方程", "整数解", "存在性"]
+    template:
+      steps:
+        - "识别问题中的最大公因数关系"
+        - "应用裴蜀定理：gcd(a,b)是a,b的最小正线性组合"
+        - "根据定理推导整除或存在性结论"
+        - "如需要，用扩展欧几里得算法求特解"
+      common_tricks:
+        - "gcd(a,b)=1 ⟺ 存在x,y使ax+by=1"
+        - "ax+by=c有整数解 ⟺ gcd(a,b)|c"
+        - "可以推广到多个数的情形"
+        - "与同余方程的联系"
+      pitfall_warnings:
+        - "注意正负系数的处理"
+        - "扩展欧几里得算法的正确实现"
+        - "通解的表达形式"
+    difficulty: 4
+    frequency: 0.58
+    related_methods: ["NUM_001", "NUM_003"]
+    examples: ["AIME_2023_009", "AIME_2024_014"]
+
+  - method_id: "NUM_003"
+    name: "费马小定理"
+    category: "NUMBER_THEORY"
+    description: |
+      费马小定理：若p是素数，a不被p整除，则a^(p-1) ≡ 1 (mod p)。
+      这是数论中最基本且应用最广泛的定理之一，
+      在计算大指数的模、证明整除性等方面极为有用。
+    applicability:
+      - condition: "涉及素数和大指数的模运算"
+        keywords: ["素数", "指数", "幂", "模"]
+        problem_types: ["模运算", "整除性证明", "周期性"]
+      - condition: "需要简化高次幂的模"
+        keywords: ["高次", "简化", "周期"]
+    template:
+      steps:
+        - "识别问题中的素数模"
+        - "确认底数与模数互素"
+        - "应用费马小定理降次"
+        - "计算简化后的结果"
+      common_tricks:
+        - "a^(p-1) ≡ 1 (mod p) 用于降次"
+        - "a^p ≡ a (mod p) 适用于所有a"
+        - "可以处理循环小数的周期"
+        - "与欧拉定理的关系"
+      pitfall_warnings:
+        - "必须确保p是素数"
+        - "底数与模数要互素"
+        - "注意模数的范围"
+    difficulty: 3
+    frequency: 0.72
+    related_methods: ["NUM_001", "NUM_004"]
+    examples: ["AIME_2023_013", "AIME_2024_004"]
+
+  - method_id: "NUM_004"
+    name: "欧拉定理"
+    category: "NUMBER_THEORY"
+    description: |
+      欧拉定理：若gcd(a,n)=1，则a^φ(n) ≡ 1 (mod n)，
+      其中φ(n)是欧拉函数，表示不超过n且与n互质的正整数个数。
+      这是费马小定理的推广，适用于一般模数。
+    applicability:
+      - condition: "涉及一般模数的幂运算"
+        keywords: ["欧拉", "φ", "互质", "模"]
+        problem_types: ["模运算", "整除性", "周期性"]
+      - condition: "模数不是素数"
+        keywords: ["非素数", "合数", "一般模"]
+    template:
+      steps:
+        - "计算欧拉函数φ(n)"
+        - "确认底数与模数互质"
+        - "应用欧拉定理降次"
+        - "计算简化后的结果"
+      common_tricks:
+        - "φ(p) = p-1 (p为素数)"
+        - "φ(p^k) = p^k - p^(k-1)"
+        - "φ(ab) = φ(a)φ(b) (a,b互质)"
+        - "与费马小定理的关系"
+      pitfall_warnings:
+        - "必须确认互质条件"
+        - "欧拉函数的计算要正确"
+        - "大于模数的指数要先降次"
+    difficulty: 4
+    frequency: 0.55
+    related_methods: ["NUM_003", "NUM_001"]
+    examples: ["AIME_2023_016", "AIME_2024_015"]
+
+  # ==================== 组合方法 ====================
+
+  - method_id: "COM_001"
+    name: "计数原理"
+    category: "COMBINATORICS"
+    description: |
+      计数原理包括加法原理和乘法原理，是组合数学的基础。
+      加法原理用于互斥情况的总数计算，
+      乘法原理用于分步完成事件的计数。
+    applicability:
+      - condition: "需要计算满足条件的方案数"
+        keywords: ["计数", "方案", "总数", "排列", "组合"]
+        problem_types: ["计数问题", "排列组合", "概率计算"]
+      - condition: "问题可以分类或分步处理"
+        keywords: ["分类", "分步", "情况"]
+    template:
+      steps:
+        - "分析问题是否可以分类或分步"
+        - "对于互斥情况，使用加法原理"
+        - "对于分步完成，使用乘法原理"
+        - "正确计算每类/每步的方案数"
+        - "汇总得到总数"
+      common_tricks:
+        - "先分类再分步，避免遗漏或重复"
+        - "互补法：总数减去不满足条件的"
+        - "对称性可以简化计数"
+        - "对应法：建立与已知计数的对应"
+      pitfall_warnings:
+        - "分类要完备且互斥"
+        - "分步的顺序要正确"
+        - "注意重复计数的问题"
+    difficulty: 2
+    frequency: 0.90
+    related_methods: ["COM_002", "COM_003"]
+    examples: ["AIME_2023_005", "AIME_2024_016"]
+
+  - method_id: "COM_002"
+    name: "容斥原理"
+    category: "COMBINATORICS"
+    description: |
+      容斥原理用于计算若干集合的并集元素个数，
+      通过交替加减各集合交的元素个数来实现。
+      是处理"至少满足一个条件"问题的标准工具。
+    applicability:
+      - condition: "需要计算满足至少一个条件的元素数"
+        keywords: ["至少", "容斥", "交集", "并集"]
+        problem_types: ["计数问题", "概率计算", "集合问题"]
+      - condition: "直接计数困难，但补集易求"
+        keywords: ["补集", "间接", "反面"]
+    template:
+      steps:
+        - "识别各个集合和它们的关系"
+        - "写出容斥公式"
+        - "计算各单项、交集的元素数"
+        - "按照公式交替加减"
+        - "得到最终结果"
+      common_tricks:
+        - "两个集合：|A∪B| = |A| + |B| - |A∩B|"
+        - "三个集合的容斥公式"
+        - "对称情况可以简化计算"
+        - "与补集思想配合"
+      pitfall_warnings:
+        - "注意交并的符号"
+        - "高阶交集不要遗漏或重复"
+        - "公式的符号交替规律"
+    difficulty: 3
+    frequency: 0.75
+    related_methods: ["COM_001", "COM_003"]
+    examples: ["AIME_2023_006", "AIME_2024_001"]
+
+  - method_id: "COM_003"
+    name: "生成函数"
+    category: "COMBINATORICS"
+    description: |
+      生成函数是将数列编码为多项式或幂级数的方法，
+      通过函数运算解决计数问题。
+      特别适合处理递推关系和约束条件下的计数。
+    applicability:
+      - condition: "涉及递推关系的计数问题"
+        keywords: ["递推", "序列", "生成函数", "系数"]
+        problem_types: ["计数问题", "递推求解", "分割问题"]
+      - condition: "有约束条件的组合计数"
+        keywords: ["约束", "条件", "限制"]
+    template:
+      steps:
+        - "根据问题构造生成函数"
+        - "确定生成函数的系数意义"
+        - "进行函数运算（乘法、求和等）"
+        - "提取所需系数"
+        - "解释系数的计数意义"
+      common_tricks:
+        - "普通生成函数用于无序计数"
+        - "指数生成函数用于有序排列"
+        - "利用已知函数的展开式"
+        - "递推关系转化为函数方程"
+      pitfall_warnings:
+        - "正确理解系数的意义"
+        - "区分普通和指数生成函数"
+        - "函数运算的正确性"
+    difficulty: 5
+    frequency: 0.42
+    related_methods: ["COM_001", "COM_002"]
+    examples: ["AIME_2023_017", "AIME_2024_017"]
+
+  - method_id: "COM_004"
+    name: "抽屉原理"
+    category: "COMBINATORICS"
+    description: |
+      抽屉原理（鸽巢原理）：将n+1个物品放入n个抽屉，
+      必有一个抽屉至少有2个物品。
+      是证明存在性的有力工具。
+    applicability:
+      - condition: "需要证明某种存在性"
+        keywords: ["存在", "至少", "证明", "抽屉"]
+        problem_types: ["存在性证明", "最值问题", "覆盖问题"]
+      - condition: "元素数量超过分类数"
+        keywords: ["数量", "分类", "分配"]
+    template:
+      steps:
+        - "识别要证明存在的对象"
+        - "设计适当的抽屉（分类方式）"
+        - "计算元素数和抽屉数的关系"
+        - "应用抽屉原理得出结论"
+      common_tricks:
+        - "抽屉的设计是关键"
+        - "可以推广为：nm+1个元素放入n个抽屉，必有一个抽屉至少m+1个"
+        - "平均分配的反面是抽屉原理"
+        - "用模构造抽屉"
+      pitfall_warnings:
+        - "抽屉设计要合理"
+        - "元素和抽屉的计数要准确"
+        - "抽屉原理只能证明存在性"
+    difficulty: 3
+    frequency: 0.68
+    related_methods: ["COM_001", "GEN_002"]
+    examples: ["AIME_2023_018", "AIME_2024_018"]
+
+  - method_id: "COM_005"
+    name: "递推法"
+    category: "COMBINATORICS"
+    description: |
+      通过建立递推关系，用已知的较小规模问题的解
+      来求大规模问题的解。递推法是解决计数问题的基本方法，
+      特别适合处理有结构性的问题。
+    applicability:
+      - condition: "问题具有递归或递推结构"
+        keywords: ["递推", "递归", "序列", "分步"]
+        problem_types: ["计数问题", "数列求值", "最优问题"]
+      - condition: "大规模问题可分解为小规模问题"
+        keywords: ["分解", "子问题", "递归"]
+    template:
+      steps:
+        - "分析问题的递推结构"
+        - "确定状态和递推关系"
+        - "写出递推方程"
+        - "确定初始条件"
+        - "求解递推方程或迭代计算"
+      common_tricks:
+        - "状态定义要清晰完整"
+        - "从简单情况开始寻找规律"
+        - "线性递推可用特征方程求解"
+        - "矩阵快速幂加速计算"
+      pitfall_warnings:
+        - "递推关系要正确"
+        - "初始条件要完备"
+        - "注意递推的方向和范围"
+    difficulty: 3
+    frequency: 0.78
+    related_methods: ["COM_003", "GEN_001"]
+    examples: ["AIME_2023_019", "AIME_2024_019"]
+
+  # ==================== 通用方法 ====================
+
+  - method_id: "GEN_001"
+    name: "数学归纳法"
+    category: "GENERAL"
+    description: |
+      数学归纳法是证明关于正整数命题的基本方法，
+      通过验证基础情况和证明归纳步骤，
+      推出命题对所有正整数成立。
+    applicability:
+      - condition: "命题涉及'对任意正整数n'"
+        keywords: ["正整数", "任意n", "对所有n", "∀n∈N"]
+        problem_types: ["恒等式证明", "不等式证明", "存在性证明"]
+      - condition: "命题有递推结构"
+        keywords: ["递推", "递归", "f(n+1)"]
+    template:
+      steps:
+        - "明确归纳命题P(n)"
+        - "验证基础步骤：证明P(1)或P(0)成立"
+        - "假设P(k)成立（归纳假设）"
+        - "证明P(k)→P(k+1)（归纳步骤）"
+        - "由归纳原理，命题对所有n成立"
+      common_tricks:
+        - "归纳假设要充分利用"
+        - "有时需要加强命题"
+        - "第二数学归纳法：假设P(1),...,P(k)都成立"
+        - "可以从不同的起点开始"
+      pitfall_warnings:
+        - "基础步骤不能省略"
+        - "归纳假设必须被使用"
+        - "注意归纳起点和范围"
+        - "反向归纳和其他变体"
+    difficulty: 3
+    frequency: 0.78
+    related_methods: ["COM_005", "GEN_003"]
+    examples: ["AIME_2023_020", "AIME_2024_020"]
+
+  - method_id: "GEN_002"
+    name: "反证法"
+    category: "GENERAL"
+    description: |
+      反证法通过假设结论不成立，推导出矛盾，
+      从而证明原结论成立。是证明存在性、唯一性、
+      不可能性的基本方法。
+    applicability:
+      - condition: "直接证明困难"
+        keywords: ["困难", "间接", "反面"]
+        problem_types: ["存在性证明", "不可能证明", "唯一性证明"]
+      - condition: "结论的反面更容易处理"
+        keywords: ["反面", "否定", "矛盾"]
+    template:
+      steps:
+        - "明确要证明的结论"
+        - "假设结论不成立"
+        - "从假设出发进行推理"
+        - "推导出矛盾"
+        - "由矛盾否定假设，肯定原结论"
+      common_tricks:
+        - "矛盾可以是与已知条件矛盾"
+        - "矛盾可以是与公理定理矛盾"
+        - "矛盾可以是自相矛盾"
+        - "有时只需证明存在一个反例"
+      pitfall_warnings:
+        - "假设必须是结论的完全否定"
+        - "推理过程要严谨"
+        - "矛盾要明确"
+    difficulty: 3
+    frequency: 0.72
+    related_methods: ["GEN_003", "GEN_004"]
+    examples: ["AIME_2023_021", "AIME_2024_021"]
+
+  - method_id: "GEN_003"
+    name: "构造法"
+    category: "GENERAL"
+    description: |
+      构造法通过直接构造满足条件的对象来证明存在性，
+      或者构造反例来否定命题。是处理存在性问题的直接方法。
+    applicability:
+      - condition: "需要证明存在性或给出反例"
+        keywords: ["存在", "构造", "反例", "实例"]
+        problem_types: ["存在性证明", "反例构造", "实例验证"]
+      - condition: "有明确的构造思路"
+        keywords: ["思路", "方法", "实例"]
+    template:
+      steps:
+        - "明确需要构造的对象类型"
+        - "分析应满足的条件"
+        - "设计构造方案"
+        - "验证构造的对象满足所有条件"
+      common_tricks:
+        - "从简单情况入手"
+        - "利用已知的构造模式"
+        - "构造函数或序列"
+        - "几何构造"
+      pitfall_warnings:
+        - "构造要满足所有条件"
+        - "构造的合理性需要验证"
+        - "构造可能不唯一"
+    difficulty: 4
+    frequency: 0.65
+    related_methods: ["GEN_001", "GEN_002"]
+    examples: ["AIME_2023_022", "AIME_2024_022"]
+
+  - method_id: "GEN_004"
+    name: "极端原理"
+    category: "GENERAL"
+    description: |
+      极端原理通过考虑问题的极端情况
+      （最大、最小、边界等）来简化问题或发现关键性质。
+      是处理优化问题和存在性问题的有效方法。
+    applicability:
+      - condition: "问题涉及最大值、最小值、边界"
+        keywords: ["最大", "最小", "极端", "边界"]
+        problem_types: ["最值问题", "存在性证明", "优化问题"]
+      - condition: "需要从一般情况中找出特殊"
+        keywords: ["特殊", "典型", "临界"]
+    template:
+      steps:
+        - "识别问题中的极端元素或情况"
+        - "分析极端情况的特殊性质"
+        - "利用极端性质简化问题或得出结论"
+      common_tricks:
+        - "最小元素（反证法常用）"
+        - "最大元素"
+        - "边界条件"
+        - "极限情况"
+      pitfall_warnings:
+        - "极端情况的存在性"
+        - "极端情况是否代表性"
+        - "不要遗漏边界情况"
+    difficulty: 3
+    frequency: 0.58
+    related_methods: ["GEN_002", "COM_004"]
+    examples: ["AIME_2023_023", "AIME_2024_023"]
+
+  - method_id: "GEN_005"
+    name: "分类讨论"
+    category: "GENERAL"
+    description: |
+      分类讨论将复杂问题按某种标准分成若干简单情况分别处理，
+      最后综合各种情况得出完整结论。是处理复杂性、
+      不确定性的基本方法。
+    applicability:
+      - condition: "问题有多种情况需要分别处理"
+        keywords: ["情况", "分类", "讨论", "分别"]
+        problem_types: ["综合问题", "参数问题", "分类求值"]
+      - condition: "不同情况有不同的处理方式"
+        keywords: ["不同", "区别", "条件"]
+    template:
+      steps:
+        - "分析问题，确定分类标准"
+        - "确保分类完备且互斥"
+        - "对每类情况分别求解"
+        - "综合各种情况得出最终结论"
+      common_tricks:
+        - "按参数范围分类"
+        - "按几何位置分类"
+        - "按正负号分类"
+        - "按奇偶性分类"
+      pitfall_warnings:
+        - "分类要完备（不遗漏）"
+        - "分类要互斥（不重复）"
+        - "每类情况都要完整处理"
+        - "最终结论要综合所有情况"
+    difficulty: 3
+    frequency: 0.82
+    related_methods: ["COM_001", "GEN_002"]
+    examples: ["AIME_2023_024", "AIME_2024_024"]
+
+# 题型层次结构
+problem_type_hierarchy:
+  代数:
+    - 方程求解
+    - 不等式证明
+    - 函数最值
+    - 恒等式证明
+    - 多项式理论
+  几何:
+    - 平面几何
+    - 解析几何
+    - 立体几何
+    - 向量几何
+  数论:
+    - 整除性
+    - 同余
+    - 数位问题
+    - 素数理论
+  组合:
+    - 计数问题
+    - 存在性问题
+    - 构造问题
+    - 博弈问题
+
+# 方法选择规则
+method_selection_rules:
+  - condition: "问题涉及'对任意正整数n'"
+    priority_methods: ["GEN_001", "COM_003", "COM_005"]
+
+  - condition: "问题涉及二次表达式"
+    priority_methods: ["ALG_002", "ALG_001", "ALG_004"]
+
+  - condition: "问题涉及距离或角度"
+    priority_methods: ["GEO_001", "GEO_002", "GEO_005"]
+
+  - condition: "问题涉及整除或余数"
+    priority_methods: ["NUM_001", "NUM_002", "NUM_003"]
+
+  - condition: "问题需要证明存在性"
+    priority_methods: ["GEN_003", "GEN_002", "COM_004"]
+
+  - condition: "问题涉及计数"
+    priority_methods: ["COM_001", "COM_002", "COM_003"]

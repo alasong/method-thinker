@@ -1,0 +1,309 @@
+# MethodThinker 验证系统配置
+#
+# 该配置文件定义了多层验证系统的参数设置
+# 文档: docs/validation_system.md
+
+# =============================================================================
+# Layer 0: 快速过滤层
+# =============================================================================
+# 用最小成本快速识别明显问题，避免后续资源浪费
+# 检查内容: 语法、字段完整性、值域约束、去重、描述质量
+# 成本: 免费 | 延迟: ~10ms
+
+layer0:
+  enabled: true
+  strict_mode: true          # 严格模式: 失败时立即终止验证
+
+  # 字段检查配置
+  check_required_fields: true
+  check_field_formats: true
+  check_value_constraints: true
+  check_duplicates: true
+  check_description_quality: true
+
+  # 必要字段列表
+  required_fields:
+    - method_id
+    - name
+    - description
+    - applicability
+    - template
+
+  # 值域约束
+  value_constraints:
+    difficulty:
+      min: 1
+      max: 5
+    frequency:
+      min: 0.0
+      max: 1.0
+    success_rate:
+      min: 0.0
+      max: 1.0
+
+  # 快速失败阈值
+  fast_fail_threshold: 0.3   # 置信度低于此值时跳过后续验证
+
+# =============================================================================
+# Layer 1: 自我反思层
+# =============================================================================
+# 让模型自己检查自己，模拟人类自我纠错
+# 流程: 自我批判 -> 多角度检查 -> 迭代改进 -> 收敛判断
+# 成本: 免费（本地推理） | 延迟: ~500ms
+
+layer1:
+  enabled: true
+  max_iterations: 3          # 最大迭代改进次数
+
+  # 反思角度配置
+  perspectives:
+    - role: "初学者"
+      focus: "这个描述我能理解吗？步骤够清晰吗？"
+      temperature: 0.7
+    - role: "专家"
+      focus: "这个方法在数学上严谨吗？有理论漏洞吗？"
+      temperature: 0.2
+    - role: "教师"
+      focus: "这个方法适合教学吗？学生会理解吗？"
+      temperature: 0.5
+
+  # 检查维度
+  check_dimensions:
+    - logical_consistency    # 逻辑一致性
+    - applicability_scope    # 适用范围
+    - executability          # 可执行性
+    - completeness           # 完整性
+
+  # 置信度阈值
+  pass_threshold: 0.7        # 自我反思通过阈值
+
+# =============================================================================
+# Layer 2: 多模型验证层（核心）
+# =============================================================================
+# 用多个模型相互验证，打破单一模型偏见
+# 机制: 多数投票 + 否决机制
+# 成本: ~$0.05/方法 | 延迟: ~5s
+
+layer2:
+  enabled: true
+
+  # 验证模型配置
+  models:
+    - name: deepseek_v3
+      provider: DeepSeek
+      api_key_env: DEEPSEEK_API_KEY
+      strength:
+        - 推理
+        - 数学
+        - 编程
+      cost_per_call: 0.02
+      latency: 2.0           # 秒
+      max_tokens: 500
+      temperature: 0.3
+
+    - name: qwen_math
+      provider: Alibaba
+      api_key_env: QWEN_API_KEY
+      strength:
+        - 数学
+        - 推理
+      cost_per_call: 0.015
+      latency: 3.0
+      max_tokens: 500
+      temperature: 0.3
+
+    - name: gpt4o_mini
+      provider: OpenAI
+      api_key_env: OPENAI_API_KEY
+      strength:
+        - 通用
+        - 推理
+      cost_per_call: 0.01
+      latency: 1.5
+      max_tokens: 500
+      temperature: 0.3
+
+  # 模型选择规则（按方法类别）
+  model_selection:
+    ALGEBRA: [deepseek_v3, qwen_math, gpt4o_mini]
+    GEOMETRY: [qwen_math, deepseek_v3, gpt4o_mini]
+    NUMBER_THEORY: [qwen_math, deepseek_v3, gpt4o_mini]
+    COMBINATORICS: [deepseek_v3, gpt4o_mini]
+    GENERAL: [deepseek_v3, gpt4o_mini]
+
+  # 评估维度配置
+  assessment_dimensions:
+    - correctness            # 正确性 (0-10)
+    - completeness           # 完整性 (0-10)
+    - applicability          # 适用性 (0-10)
+    - clarity                # 清晰度 (0-10)
+    - practicality           # 实用性 (0-10)
+
+  # 决策参数
+  approval_threshold: 0.6    # 认可比例阈值（≥60%模型认可即通过）
+  veto_threshold: 0.3        # 否决阈值
+  veto_count_threshold: 2    # 否决模型数量阈值
+
+  # 重试配置
+  retry:
+    max_attempts: 3
+    backoff_factor: 2        # 指数退避因子
+    initial_delay: 1.0       # 初始延迟（秒）
+
+# =============================================================================
+# Layer 3: 测试驱动验证层
+# =============================================================================
+# 用实际测试验证方法有效性
+# 流程: 测试选择 -> 解答生成 -> 答案验证 -> 统计分析
+# 成本: GPU时 | 延迟: ~30s
+
+layer3:
+  enabled: true
+
+  # 测试配置
+  min_test_count: 20         # 最少测试数量
+  max_test_count: 50         # 最大测试数量
+
+  # 测试集配置
+  test_dataset:
+    path: data/test_sets/
+    format: json
+    balance_by_difficulty: true
+
+  # 通过阈值
+  pass_threshold: 0.6        # 成功率阈值
+
+  # 答案验证配置
+  answer_verification:
+    numeric_tolerance: 1e-6  # 数值匹配容差
+    allow_equivalent_forms: true
+
+  # 统计配置
+  statistics:
+    confidence_level: 0.95   # 置信水平
+    min_sample_size: 10      # 最小样本量
+
+  # 超时配置
+  timeout:
+    per_test: 60             # 单个测试超时（秒）
+    total: 600               # 总超时（秒）
+
+# =============================================================================
+# 集成决策引擎
+# =============================================================================
+# 综合各层验证结果做出最终决策
+# 机制: 加权投票 + 否决检查 + 最终判定
+
+ensemble:
+  # 各层权重（总和应为1.0）
+  weights:
+    0: 0.05                  # Layer 0: 快速过滤权重低
+    1: 0.15                  # Layer 1: 自我反思权重中低
+    2: 0.40                  # Layer 2: 多模型验证权重高（核心）
+    3: 0.40                  # Layer 3: 测试验证权重高（核心）
+
+  # 否决配置
+  veto:
+    enabled: true
+    core_layers: [2, 3]      # 核心层（可否决）
+    confidence_threshold: 0.8  # 否决所需置信度
+
+  # 一致性配置
+  consensus:
+    require_all_passed: false  # 是否要求所有层都通过
+    weighted_threshold: 0.5    # 加权得分阈值
+
+# =============================================================================
+# 预算配置
+# =============================================================================
+# API调用预算管理
+
+budget:
+  total: 500                  # 总预算（美元）
+  alert_threshold: 0.8        # 告警阈值（80%预算时告警）
+  hard_limit: 0.95            # 硬限制（超过即停止）
+
+  # 各层预算分配
+  allocation:
+    layer2: 0.9               # Layer 2占90%
+    layer3: 0.1               # Layer 3占10%（GPU时）
+
+  # 追踪配置
+  tracking:
+    log_calls: true           # 记录每次API调用
+    save_history: true        # 保存历史记录
+    history_path: logs/budget_history.json
+
+# =============================================================================
+# 输出配置
+# =============================================================================
+
+output:
+  # 控制台输出
+  console:
+    verbose: false            # 详细输出
+    show_progress: true       # 显示进度
+    show_statistics: true     # 显示统计信息
+
+  # 文件输出
+  file:
+    enabled: true
+    path: results/
+    format: json
+    include_details: true     # 包含详细结果
+
+  # 日志配置
+  logging:
+    level: INFO               # DEBUG, INFO, WARNING, ERROR
+    path: logs/validation.log
+    rotation:
+      max_size: 10            # MB
+      backup_count: 5
+
+# =============================================================================
+# 性能配置
+# =============================================================================
+
+performance:
+  # 并行配置
+  parallel:
+    enabled: true
+    max_workers: 4            # 最大并行工作数
+
+  # 缓存配置
+  cache:
+    enabled: true
+    ttl: 3600                 # 缓存有效期（秒）
+    max_size: 1000            # 最大缓存数量
+
+  # 批处理配置
+  batch:
+    enabled: true
+    size: 10                  # 批处理大小
+
+# =============================================================================
+# 高级配置
+# =============================================================================
+
+advanced:
+  # 模型调用重试
+  retry_on_failure: true
+  max_retries: 3
+
+  # 超时设置
+  timeouts:
+    layer0: 5                 # 秒
+    layer1: 30
+    layer2: 60
+    layer3: 600
+
+  # 错误处理
+  error_handling:
+    on_layer_failure: continue  # continue, skip, abort
+    fallback_confidence: 0.5
+
+  # 调试模式
+  debug:
+    enabled: false
+    save_intermediate_results: true
+    intermediate_path: debug/

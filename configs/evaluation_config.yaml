@@ -1,0 +1,356 @@
+# MethodThinker 评估配置
+#
+# 该配置文件定义了模型性能评估的参数设置
+# 文档: docs/deployment.md
+
+# =============================================================================
+# 评估基准配置
+# =============================================================================
+# 定义各评估基准的详细配置
+
+benchmarks:
+  # AIME 2025 - 主要目标基准
+  aime25:
+    name: "AIME 2025"
+    description: "美国数学邀请赛 2025 年真题"
+    path: "data/test_sets/aime25.json"
+    enabled: true
+    total_problems: 15
+    time_limit: 180              # 每题限时（分钟）
+    pass_k_target: 64            # Pass@K 目标 K 值
+    target_accuracy: 0.75        # Pass@64 目标准确率
+
+  # AIME 2024 - 辅助验证基准
+  aime24:
+    name: "AIME 2024"
+    description: "美国数学邀请赛 2024 年真题"
+    path: "data/test_sets/aime24.json"
+    enabled: true
+    total_problems: 15
+    time_limit: 180
+    pass_k_target: 16
+    target_accuracy: 0.70
+
+  # HMMT - 高难度验证基准
+  hmmt:
+    name: "HMMT"
+    description: "哈佛-麻省理工数学竞赛题目"
+    path: "data/test_sets/hmmt.json"
+    enabled: true
+    total_problems: 50
+    time_limit: 240
+    pass_k_target: 8
+    target_accuracy: 0.60
+
+  # LiveCodeBench - 编程能力基准
+  livecodebench:
+    name: "LiveCodeBench"
+    description: "实时编程挑战基准"
+    path: "data/test_sets/livecodebench.json"
+    enabled: false               # 可选基准
+    total_problems: 100
+    time_limit: 120
+    pass_k_target: 1
+
+# =============================================================================
+# Pass@K 计算配置
+# =============================================================================
+# Pass@K 指标计算参数
+
+pass_at_k:
+  # K 值列表 - 计算多个 K 值的 Pass@K
+  k_values:
+    - 1                          # Pass@1 - 单次尝试准确率
+    - 8                          # Pass@8 - 8 次采样
+    - 16                         # Pass@16 - 16 次采样
+    - 64                         # Pass@64 - 64 次采样（主要指标）
+
+  # 置信水平
+  confidence_level: 0.95         # 95% 置信区间
+
+  # 采样参数
+  sampling:
+    temperature: 0.7             # 采样温度
+    top_p: 0.9                   # Top-p 采样
+    top_k: 50                    # Top-k 采样
+    max_tokens: 2048             # 最大生成 token 数
+
+  # 计算方法
+  method: "unbiased"             # unbiased, conservative
+  min_samples: 10                # 最小样本数（确保统计有效性）
+
+# =============================================================================
+# 消融实验配置
+# =============================================================================
+# 用于分析系统各组件的贡献
+
+ablation:
+  enabled: true                  # 是否执行消融实验
+
+  # 消融实验项目
+  experiments:
+    # 验证系统消融
+    - name: "no_layer0"
+      description: "移除 Layer 0 快速过滤"
+      config_changes:
+        layer0.enabled: false
+
+    - name: "no_layer1"
+      description: "移除 Layer 1 自我反思"
+      config_changes:
+        layer1.enabled: false
+
+    - name: "no_layer2"
+      description: "移除 Layer 2 多模型验证"
+      config_changes:
+        layer2.enabled: false
+
+    - name: "no_layer3"
+      description: "移除 Layer 3 测试驱动验证"
+      config_changes:
+        layer3.enabled: false
+
+    - name: "only_layer0_layer1"
+      description: "只用免费层级验证"
+      config_changes:
+        layer2.enabled: false
+        layer3.enabled: false
+
+    # 训练策略消融
+    - name: "no_methodology_injection"
+      description: "不使用方法论注入训练"
+      config_changes:
+        methodology_injection.enabled: false
+
+    - name: "no_diversity_training"
+      description: "不使用多样性训练"
+      config_changes:
+        diversity_training.enabled: false
+
+    - name: "no_reflection_training"
+      description: "不使用反思强化训练"
+      config_changes:
+        reflection_training.enabled: false
+
+    # 知识库消融
+    - name: "kb_v0_only"
+      description: "只使用种子知识库"
+      config_changes:
+        kb_path: "data/methodology_kb/v0/"
+
+    - name: "kb_v1_only"
+      description: "只使用首轮迭代知识库"
+      config_changes:
+        kb_path: "data/methodology_kb/v1/"
+
+# =============================================================================
+# 评估流程配置
+# =============================================================================
+# 评估执行的详细流程参数
+
+workflow:
+  # 评估阶段
+  stages:
+    - name: "warmup"
+      description: "预热阶段 - 确保模型稳定"
+      enabled: true
+      num_problems: 5
+      save_outputs: false
+
+    - name: "evaluation"
+      description: "正式评估阶段"
+      enabled: true
+      save_outputs: true
+      save_path: "results/evaluation_outputs/"
+
+    - name: "analysis"
+      description: "结果分析阶段"
+      enabled: true
+      generate_report: true
+
+  # 评估顺序
+  order:
+    - aime24                     # 先用 2024 验证
+    - aime25                     # 再评估主要目标
+    - hmmt                       # 最后高难度验证
+
+  # 并行评估
+  parallel:
+    enabled: false               # 建议串行以确保一致性
+    max_concurrent: 1
+
+# =============================================================================
+# 模型推理配置
+# =============================================================================
+# 评估时的模型推理参数
+
+inference:
+  # 模型加载
+  model_loading:
+    device: "cuda"               # cuda, cpu, auto
+    torch_dtype: "bfloat16"      # float16, bfloat16, float32
+    max_memory: null             # 最大 GPU 内存限制
+
+  # vLLM 加速（可选）
+  vllm:
+    enabled: false               # 是否使用 vLLM
+    tensor_parallel_size: 1      # 张量并行大小
+    gpu_memory_utilization: 0.9  # GPU 内存利用率
+
+  # 生成参数
+  generation:
+    do_sample: true              # 是否采样
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 50
+    max_new_tokens: 2048
+    repetition_penalty: 1.1      # 重复惩罚
+    stop_tokens:
+      - "####"                   # 答案分隔符
+      - "\n\n\n"                 # 多换行
+
+  # 批处理
+  batching:
+    enabled: true
+    batch_size: 8                # 批大小
+    dynamic_batching: true       # 动态批处理
+
+# =============================================================================
+# 答案验证配置
+# =============================================================================
+# 答案提取和验证参数
+
+answer_verification:
+  # 答案提取
+  extraction:
+    pattern: "final answer is (.+)"  # 答案提取正则
+    fallback_patterns:
+      - "answer: (.+)"
+      - "= (.+)"
+      - "the answer is (.+)"
+    require_boxed: false         # 是否要求 boxed 格式
+
+  # 答案匹配
+  matching:
+    numeric_tolerance: 1e-6      # 数值匹配容差
+    allow_equivalent_forms: true # 允许等价形式
+    symbolic_check: true         # 符号表达式检查
+
+  # 答案验证后端
+  backend:
+    type: "hybrid"               # numeric, symbolic, hybrid
+    sympy_enabled: true          # 使用 SymPy 符号验证
+
+# =============================================================================
+# 结果分析配置
+# =============================================================================
+# 结果分析和报告生成参数
+
+analysis:
+  # 统计分析
+  statistics:
+    compute_confidence_interval: true
+    compute_standard_error: true
+    breakdown_by_difficulty: true
+    breakdown_by_category: true
+
+  # 报告生成
+  report:
+    format: "markdown"           # markdown, json, html
+    output_path: "results/evaluation_report.md"
+    include:
+      - summary                  # 总体摘要
+      - benchmarks               # 各基准详情
+      - breakdown                # 分类统计
+      - ablation                 # 消融实验结果
+      - examples                 # 示例解答
+      - errors                   # 错误分析
+
+  # 可视化
+  visualization:
+    enabled: true
+    plots:
+      - pass_at_k_curve          # Pass@K 曲线
+      - difficulty_heatmap       # 难度热力图
+      - category_breakdown       # 分类柱状图
+    output_path: "results/plots/"
+
+# =============================================================================
+# 输出配置
+# =============================================================================
+# 输出文件和日志配置
+
+output:
+  # 结果保存
+  results:
+    path: "results/evaluation/"
+    format: "json"
+    save_intermediate: true      # 保存中间结果
+    save_raw_outputs: true       # 保存原始输出
+
+  # 日志配置
+  logging:
+    level: "INFO"                # DEBUG, INFO, WARNING, ERROR
+    path: "logs/evaluation.log"
+    console_output: true
+
+  # 检查点
+  checkpoints:
+    enabled: true                # 保存评估检查点
+    path: "results/checkpoints/"
+    resume_enabled: true         # 支持从检查点恢复
+
+# =============================================================================
+# 性能配置
+# =============================================================================
+# 性能优化参数
+
+performance:
+  # 并行配置
+  parallel:
+    num_workers: 4               # 工作线程数
+    use_multiprocessing: false   # 使用多进程（避免 CUDA 问题）
+
+  # 缓存配置
+  cache:
+    enabled: true
+    path: "cache/evaluation/"
+    ttl: 86400                   # 缓存有效期（秒）
+
+  # 资源限制
+  limits:
+    max_memory_per_process: 8192  # MB
+    max_time_per_problem: 300     # 秒
+    max_total_time: 7200          # 秒（总评估时间）
+
+# =============================================================================
+# 目标指标配置
+# =============================================================================
+# 项目目标指标定义
+
+targets:
+  # 主要目标
+  primary:
+    benchmark: "aime25"
+    metric: "pass_at_64"
+    target: 0.75                 # 75%
+
+  # 辅助目标
+  secondary:
+    - benchmark: "aime24"
+      metric: "pass_at_16"
+      target: 0.70
+
+    - benchmark: "hmmt"
+      metric: "pass_at_8"
+      target: 0.60
+
+  # 验证系统目标
+  validation:
+    accuracy_target: 0.85        # 验证准确率 80-85%
+    coverage_target: 0.95        # 方法覆盖率 95%
+
+  # 预算目标
+  budget:
+    api_budget: 500              # API 预算（美元）
+    gpu_hours: 2300              # GPU 时预算

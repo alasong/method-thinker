@@ -1,0 +1,29 @@
+methods:
+  - method_id: "ALG_001"
+    name: "变量替换法"
+    category: "ALGEBRA"
+    description: "通过引入新变量简化表达式结构"
+    applicability:
+      - condition: "表达式中存在重复结构"
+        keywords: ["对称", "重复", "倒数"]
+        problem_types: ["方程求解", "函数最值"]
+    template:
+      steps: ["识别重复模式", "选择替换变量", "变换表达式", "求解新方程", "回代并验证"]
+      common_tricks: ["设 t = x + 1/x"]
+      pitfall_warnings: ["注意新变量的取值范围"]
+    difficulty: 3
+    frequency: 0.85
+  - method_id: "ALG_002"
+    name: "配方法"
+    category: "ALGEBRA"
+    description: "将二次式化为完全平方形式"
+    applicability:
+      - condition: "涉及二次表达式"
+        keywords: ["二次", "平方", "最值"]
+        problem_types: ["函数最值"]
+    template:
+      steps: ["提取二次项系数", "配方成完全平方", "分析最值或范围"]
+      common_tricks: ["配方后结合均值不等式"]
+      pitfall_warnings: ["注意二次项系数的正负"]
+    difficulty: 2
+    frequency: 0.92

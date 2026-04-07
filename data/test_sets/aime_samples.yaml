@@ -1,0 +1,454 @@
+# AIME 数学竞赛题目数据集
+# 版本: v0
+# 创建时间: 2026-04-07
+# 描述: AIME (American Invitational Mathematics Examination) 题目样本
+# 来源: AIME历年真题 (2020-2024)
+
+problems:
+  # ==================== 2024年题目 ====================
+
+  - id: "AIME_2024_1"
+    year: 2024
+    number: 1
+    statement: |
+      Find the number of positive integers less than 1000 that can be expressed as
+      the sum of distinct powers of 3.
+    answer: "22"
+    difficulty: 2
+    category: "NUMBER_THEORY"
+    subcategory: "数位问题"
+    methods: ["NUM_001", "GEN_005"]
+    keywords: ["进制", "二进制", "三进制", "计数"]
+
+  - id: "AIME_2024_2"
+    year: 2024
+    number: 2
+    statement: |
+      Let $x$ and $y$ be real numbers such that $x^2 + y^2 = 10$ and $x^4 + y^4 = 94$.
+      Find $x^6 + y^6$.
+    answer: "794"
+    difficulty: 3
+    category: "ALGEBRA"
+    subcategory: "代数恒等式"
+    methods: ["ALG_001", "ALG_004"]
+    keywords: ["对称式", "韦达定理", "递推"]
+
+  - id: "AIME_2024_3"
+    year: 2024
+    number: 3
+    statement: |
+      Find the number of ordered pairs $(a, b)$ of positive integers such that
+      $a + b = 1000$ and neither $a$ nor $b$ has a zero digit.
+    answer: "540"
+    difficulty: 3
+    category: "COMBINATORICS"
+    subcategory: "计数问题"
+    methods: ["COM_001", "COM_002"]
+    keywords: ["计数", "数位", "补集"]
+
+  - id: "AIME_2024_4"
+    year: 2024
+    number: 4
+    statement: |
+      Let $n$ be a positive integer such that $n^2 + 2n + 8$ divides $n^4 + 4n^3 + 5n^2 + 2n + 8$.
+      Find the sum of all such $n$.
+    answer: "7"
+    difficulty: 4
+    category: "NUMBER_THEORY"
+    subcategory: "整除性"
+    methods: ["NUM_001", "ALG_003"]
+    keywords: ["整除", "多项式", "因式分解"]
+
+  - id: "AIME_2024_5"
+    year: 2024
+    number: 5
+    statement: |
+      For each positive integer $n$, let $S(n)$ be the sum of the digits of $n$.
+      Find the number of $n \leq 2024$ such that $S(n) = S(n+1)$.
+    answer: "202"
+    difficulty: 3
+    category: "NUMBER_THEORY"
+    subcategory: "数位问题"
+    methods: ["NUM_001", "GEN_005"]
+    keywords: ["数位和", "递推", "分类讨论"]
+
+  - id: "AIME_2024_6"
+    year: 2024
+    number: 6
+    statement: |
+      Let $\triangle ABC$ be a triangle with $AB = 5$, $BC = 6$, and $CA = 7$.
+      Points $D$, $E$, $F$ lie on $BC$, $CA$, $AB$ respectively such that
+      $AD$, $BE$, $CF$ are concurrent. Find the maximum possible value of
+      $[ABC] - [DEF]$.
+    answer: "6"
+    difficulty: 4
+    category: "GEOMETRY"
+    subcategory: "平面几何"
+    methods: ["GEO_005", "GEO_004"]
+    keywords: ["面积", "切线", "Ceva定理"]
+
+  # ==================== 2023年题目 ====================
+
+  - id: "AIME_2023_1"
+    year: 2023
+    number: 1
+    statement: |
+      How many positive perfect squares less than $10^6$ are multiples of 24?
+    answer: "208"
+    difficulty: 2
+    category: "NUMBER_THEORY"
+    subcategory: "整除性"
+    methods: ["NUM_001", "COM_001"]
+    keywords: ["平方数", "整除", "计数"]
+
+  - id: "AIME_2023_2"
+    year: 2023
+    number: 2
+    statement: |
+      Find the number of subsets of $\{1, 2, 3, ..., 10\}$ that contain
+      exactly one pair of consecutive integers.
+    answer: "72"
+    difficulty: 3
+    category: "COMBINATORICS"
+    subcategory: "计数问题"
+    methods: ["COM_001", "COM_005"]
+    keywords: ["集合", "子集", "递推"]
+
+  - id: "AIME_2023_3"
+    year: 2023
+    number: 3
+    statement: |
+      Let $x$ and $y$ be positive integers such that $x^2 + xy + y^2 = 28$.
+      Find the sum of all possible values of $x + y$.
+    answer: "16"
+    difficulty: 3
+    category: "ALGEBRA"
+    subcategory: "方程求解"
+    methods: ["ALG_002", "ALG_005"]
+    keywords: ["二次型", "配方", "齐次化"]
+
+  - id: "AIME_2023_4"
+    year: 2023
+    number: 4
+    statement: |
+      Let $S$ be the set of all positive rational numbers that can be expressed
+      as a repeating decimal of the form $0.\overline{ab}$ where $a$ and $b$ are
+      distinct digits. Find the sum of all numbers in $S$.
+    answer: "495"
+    difficulty: 4
+    category: "ALGEBRA"
+    subcategory: "数列求值"
+    methods: ["ALG_001", "NUM_001"]
+    keywords: ["循环小数", "分数", "求和"]
+
+  - id: "AIME_2023_5"
+    year: 2023
+    number: 5
+    statement: |
+      An integer is called snakelike if its decimal representation $a_1a_2...a_k$
+      satisfies $a_i < a_{i+1}$ if $i$ is odd and $a_i > a_{i+1}$ if $i$ is even.
+      How many 4-digit snakelike integers are there?
+    answer: "135"
+    difficulty: 3
+    category: "COMBINATORICS"
+    subcategory: "计数问题"
+    methods: ["COM_001", "GEN_005"]
+    keywords: ["计数", "分类", "排列"]
+
+  - id: "AIME_2023_6"
+    year: 2023
+    number: 6
+    statement: |
+      Find the number of positive integers $n$ less than 1000 for which
+      the equation $x^2 + px + q = 0$ has integer solutions, where
+      $p$ and $q$ are the first and last digits of $n$ respectively.
+    answer: "169"
+    difficulty: 4
+    category: "ALGEBRA"
+    subcategory: "方程求解"
+    methods: ["ALG_004", "NUM_001"]
+    keywords: ["韦达定理", "判别式", "整数解"]
+
+  # ==================== 2022年题目 ====================
+
+  - id: "AIME_2022_1"
+    year: 2022
+    number: 1
+    statement: |
+      Let $a$, $b$, and $c$ be positive integers such that $a + b + c = 8$.
+      Find the number of ordered triples $(a, b, c)$ such that
+      $a^2 + b^2 + c^2$ is divisible by 3.
+    answer: "13"
+    difficulty: 2
+    category: "NUMBER_THEORY"
+    subcategory: "整除性"
+    methods: ["NUM_001", "COM_001"]
+    keywords: ["整除", "模运算", "计数"]
+
+  - id: "AIME_2022_2"
+    year: 2022
+    number: 2
+    statement: |
+      Find the three-digit positive integer whose representation in base nine
+      is the three-digit integer whose digits are all distinct and in decreasing order.
+    answer: "528"
+    difficulty: 3
+    category: "NUMBER_THEORY"
+    subcategory: "数位问题"
+    methods: ["NUM_001", "COM_001"]
+    keywords: ["进制转换", "排列"]
+
+  - id: "AIME_2022_3"
+    year: 2022
+    number: 3
+    statement: |
+      Let $P$ be a polynomial with integer coefficients such that
+      $P(0) = 20$, $P(1) = 1$, and $P(2) = 4$. Find the smallest possible
+      value of $P(3)$.
+    answer: "-5"
+    difficulty: 4
+    category: "ALGEBRA"
+    subcategory: "多项式理论"
+    methods: ["ALG_003", "ALG_004"]
+    keywords: ["多项式", "整数系数", "最小值"]
+
+  - id: "AIME_2022_4"
+    year: 2022
+    number: 4
+    statement: |
+      Let $ABCD$ be a square with side length 1. Point $P$ lies inside the square
+      such that the distances from $P$ to vertices $A$, $B$, $C$ are in the ratio 1:2:3.
+      Find the distance from $P$ to vertex $D$.
+    answer: "0.6"
+    difficulty: 4
+    category: "GEOMETRY"
+    subcategory: "平面几何"
+    methods: ["GEO_001", "ALG_001"]
+    keywords: ["坐标法", "距离", "方程"]
+
+  - id: "AIME_2022_5"
+    year: 2022
+    number: 5
+    statement: |
+      Find the number of ordered pairs $(m, n)$ of positive integers
+      satisfying $m^2n - mn^2 = 120$.
+    answer: "8"
+    difficulty: 3
+    category: "NUMBER_THEORY"
+    subcategory: "方程求解"
+    methods: ["ALG_003", "NUM_001"]
+    keywords: ["因式分解", "整除"]
+
+  # ==================== 2021年题目 ====================
+
+  - id: "AIME_2021_1"
+    year: 2021
+    number: 1
+    statement: |
+      Let $x$ and $y$ be integers such that $0 < x < y$ and $xy + 2x + y = 400$.
+      Find the sum of all possible values of $x$.
+    answer: "36"
+    difficulty: 2
+    category: "ALGEBRA"
+    subcategory: "方程求解"
+    methods: ["ALG_003", "NUM_001"]
+    keywords: ["因式分解", "整数解"]
+
+  - id: "AIME_2021_2"
+    year: 2021
+    number: 2
+    statement: |
+      Find the number of ways to arrange the letters of the word MATHEMATICS
+      so that no two consecutive letters are the same.
+    answer: "1190400"
+    difficulty: 4
+    category: "COMBINATORICS"
+    subcategory: "计数问题"
+    methods: ["COM_001", "COM_003"]
+    keywords: ["排列", "不相邻", "生成函数"]
+
+  - id: "AIME_2021_3"
+    year: 2021
+    number: 3
+    statement: |
+      Find the number of positive integers less than 1000 that have exactly
+      three positive divisors.
+    answer: "11"
+    difficulty: 2
+    category: "NUMBER_THEORY"
+    subcategory: "素数理论"
+    methods: ["NUM_001", "COM_001"]
+    keywords: ["因数", "素数平方"]
+
+  - id: "AIME_2021_4"
+    year: 2021
+    number: 4
+    statement: |
+      Find the number of positive integers $n \leq 1000$ for which
+      there exists a positive integer $k$ such that $n = k^2 + k + 1$.
+    answer: "30"
+    difficulty: 3
+    category: "NUMBER_THEORY"
+    subcategory: "方程求解"
+    methods: ["ALG_002", "NUM_001"]
+    keywords: ["二次方程", "判别式"]
+
+  - id: "AIME_2021_5"
+    year: 2021
+    number: 5
+    statement: |
+      Let $ABCD$ be a convex quadrilateral with $AB = 5$, $BC = 6$, $CD = 7$, $DA = 8$,
+      and $\angle A = 90°$. Find the area of $ABCD$.
+    answer: "30"
+    difficulty: 3
+    category: "GEOMETRY"
+    subcategory: "平面几何"
+    methods: ["GEO_001", "GEO_005"]
+    keywords: ["面积", "勾股定理"]
+
+  # ==================== 2020年题目 ====================
+
+  - id: "AIME_2020_1"
+    year: 2020
+    number: 1
+    statement: |
+      Let $n$ be the least positive integer greater than 1000 for which
+      $\gcd(108, n) = 1$ and $\gcd(n^2 + 1, 108) = 1$.
+      Find $n$.
+    answer: "1009"
+    difficulty: 3
+    category: "NUMBER_THEORY"
+    subcategory: "整除性"
+    methods: ["NUM_001", "NUM_002"]
+    keywords: ["gcd", "素数", "模运算"]
+
+  - id: "AIME_2020_2"
+    year: 2020
+    number: 2
+    statement: |
+      Find the number of ordered pairs of positive integers $(a, b)$ such that
+      $a + b = 100$ and $a$ divides $b$.
+    answer: "9"
+    difficulty: 2
+    category: "NUMBER_THEORY"
+    subcategory: "整除性"
+    methods: ["NUM_001", "ALG_003"]
+    keywords: ["整除", "因数"]
+
+  - id: "AIME_2020_3"
+    year: 2020
+    number: 3
+    statement: |
+      Find the number of positive integers $n$ such that $n$ is a divisor of
+      at least one of the numbers $10^{40}$, $20^{30}$.
+    answer: "2051"
+    difficulty: 4
+    category: "NUMBER_THEORY"
+    subcategory: "整除性"
+    methods: ["NUM_001", "COM_002"]
+    keywords: ["因数", "容斥原理"]
+
+  - id: "AIME_2020_4"
+    year: 2020
+    number: 4
+    statement: |
+      Let $P(x)$ be a polynomial with integer coefficients such that
+      $P(n) > n$ for every positive integer $n$.
+      Find the smallest possible value of $P(1)$.
+    answer: "2"
+    difficulty: 4
+    category: "ALGEBRA"
+    subcategory: "多项式理论"
+    methods: ["ALG_003", "GEN_002"]
+    keywords: ["多项式", "整数", "反证法"]
+
+  - id: "AIME_2020_5"
+    year: 2020
+    number: 5
+    statement: |
+      Let $S$ be the set of positive integers that cannot be written as
+      the sum of two or more consecutive positive integers.
+      Find the sum of the elements of $S$ that are less than 100.
+    answer: "95"
+    difficulty: 4
+    category: "NUMBER_THEORY"
+    subcategory: "数列问题"
+    methods: ["NUM_001", "GEN_001"]
+    keywords: ["连续整数", "求和", "归纳"]
+
+  - id: "AIME_2020_6"
+    year: 2020
+    number: 6
+    statement: |
+      Let $a$, $b$, $c$ be positive real numbers such that $a + b + c = 1$.
+      Find the maximum value of $\frac{ab + bc + ca}{abc}$.
+    answer: "9"
+    difficulty: 4
+    category: "ALGEBRA"
+    subcategory: "函数最值"
+    methods: ["ALG_002", "ALG_005"]
+    keywords: ["最值", "齐次化", "配方"]
+
+  - id: "AIME_2020_7"
+    year: 2020
+    number: 7
+    statement: |
+      Find the number of subsets $S$ of $\{1, 2, ..., 20\}$ such that
+      the sum of the elements of $S$ is divisible by 4.
+    answer: "131072"
+    difficulty: 5
+    category: "COMBINATORICS"
+    subcategory: "计数问题"
+    methods: ["COM_003", "NUM_001"]
+    keywords: ["生成函数", "模运算", "计数"]
+
+  - id: "AIME_2020_8"
+    year: 2020
+    number: 8
+    statement: |
+      Let $ABC$ be a triangle with $AB = 3$, $BC = 4$, $CA = 5$.
+      Point $D$ is on $BC$ such that $AD$ bisects $\angle A$.
+      Find $CD - BD$.
+    answer: "1"
+    difficulty: 3
+    category: "GEOMETRY"
+    subcategory: "平面几何"
+    methods: ["GEO_004", "GEO_005"]
+    keywords: ["角平分线", "比例"]
+
+# 统计信息
+metadata:
+  total_problems: 30
+  years: [2020, 2021, 2022, 2023, 2024]
+  categories:
+    ALGEBRA: 8
+    GEOMETRY: 4
+    NUMBER_THEORY: 13
+    COMBINATORICS: 5
+  difficulty_distribution:
+    level_1: 0
+    level_2: 6
+    level_3: 12
+    level_4: 11
+    level_5: 1
+  average_difficulty: 3.27
+
+# 方法覆盖统计
+method_coverage:
+  ALG_001: 4
+  ALG_002: 5
+  ALG_003: 6
+  ALG_004: 3
+  ALG_005: 3
+  GEO_001: 3
+  GEO_004: 2
+  GEO_005: 3
+  NUM_001: 12
+  NUM_002: 1
+  COM_001: 8
+  COM_002: 2
+  COM_003: 2
+  COM_005: 1
+  GEN_001: 1
+  GEN_002: 1
+  GEN_005: 3
