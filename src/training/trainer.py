@@ -231,7 +231,6 @@ class MethodThinkerTrainer:
                 warmup_ratio=self.config.warmup_ratio,
                 weight_decay=self.config.weight_decay,
                 gradient_accumulation_steps=self.config.gradient_accumulation_steps,
-                max_length=self.config.max_length,
                 save_steps=self.config.save_steps,
                 eval_steps=self.config.eval_steps if eval_dataset else None,
                 logging_steps=self.config.logging_steps,
