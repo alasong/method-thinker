@@ -1,0 +1,275 @@
+# MethodThinker Colab训练配置
+#
+# 专为Google Colab T4 GPU (16GB) 优化的训练配置
+# 更新日期: 2026-04-07
+#
+# 使用说明:
+#   python scripts/train_sft.py --config configs/training_config_colab.yaml
+#
+
+# =============================================================================
+# 基础模型配置
+# =============================================================================
+model:
+  base_model: "Qwen/Qwen2.5-Math-1.5B"    # 1.5B模型适合T4显存
+  trust_remote_code: true
+  use_flash_attention: true              # Flash Attention加速
+
+  loading:
+    torch_dtype: "bfloat16"              # T4支持BF16
+    device_map: "auto"
+    low_cpu_mem_usage: true
+
+# =============================================================================
+# 训练参数（T4优化）
+# =============================================================================
+training:
+  # 基础参数 - 针对T4 16GB显存优化
+  num_epochs: 3
+  batch_size: 4                          # T4显存限制，使用较小batch
+  gradient_accumulation_steps: 8         # 补偿小batch，有效batch=32
+
+  # 优化器参数
+  learning_rate: 5e-5
+  weight_decay: 0.01
+  warmup_ratio: 0.1
+
+  # 学习率调度
+  lr_scheduler_type: "cosine"
+
+  # 梯度裁剪
+  max_grad_norm: 1.0
+
+  # 序列长度 - T4显存限制
+  max_length: 2048                       # 较短序列节省显存
+  max_prompt_length: 512
+
+  # 混合精度 - T4支持BF16
+  fp16: false
+  bf16: true                             # BF16比FP16更稳定
+
+  # 梯度检查点 - 节省显存
+  gradient_checkpointing: true           # 启用可节省30%显存
+
+  # 其他
+  seed: 42
+  dataloader_num_workers: 2              # Colab限制
+  dataloader_pin_memory: true
+
+  # 显存优化
+  optim: "adamw_torch_fused"             # 融合优化器更高效
+  save_only_model: true                  # 只保存模型，不保存优化器
+
+# =============================================================================
+# 方法论注入训练参数
+# =============================================================================
+methodology_injection:
+  weights:
+    method_selection: 0.3
+    solution_generation: 0.4
+    reflection: 0.3
+
+  method_selection:
+    num_candidates: 5
+    include_reasoning: true
+    temperature: 0.7
+
+  solution_generation:
+    max_steps: 20
+    include_annotations: true
+    temperature: 0.3
+
+  reflection:
+    max_length: 300                      # 较短反思节省序列长度
+    include_critique: true
+    include_improvement: true
+
+# =============================================================================
+# 多样性训练参数
+# =============================================================================
+diversity_training:
+  enabled: true
+  methods_per_problem: 3                 # 减少方法数节省计算
+
+  sampling_strategy: "diverse"
+
+  diversity_reward:
+    enabled: true
+    weight: 0.2
+    min_method_gap: 0.3
+
+# =============================================================================
+# 反思强化训练参数
+# =============================================================================
+reflection_training:
+  enabled: true
+
+  modes:
+    - self_critique
+    - alternative_solution
+
+  reinforcement:
+    reward_scale: 1.0
+    penalty_for_error: 0.5
+
+# =============================================================================
+# 数据配置
+# =============================================================================
+data:
+  train_path: "data/train_data/train.json"
+  val_path: "data/train_data/val.json"
+  test_path: "data/train_data/test.json"
+
+  kb_path: "data/methodology_kb/v0/math_methods.yaml"
+
+  format: "json"
+
+  preprocessing:
+    shuffle: true
+    filter_unverified: false
+    max_samples: 5000                    # Colab会话时间限制
+
+  augmentation:
+    enabled: false                       # Colab关闭数据增强节省时间
+    methods: []
+    ratio: 0.0
+
+# =============================================================================
+# 输出配置
+# =============================================================================
+output:
+  output_dir: "outputs/checkpoints_colab"
+
+  # 检查点保存 - Colab频繁保存防止丢失
+  save_strategy: "steps"
+  save_steps: 200                        # 更频繁保存
+  save_total_limit: 3                    # 限制数量节省空间
+
+  # 日志配置
+  logging:
+    logging_dir: "outputs/logs_colab"
+    logging_steps: 50
+
+  # 评估配置
+  evaluation:
+    eval_strategy: "steps"
+    eval_steps: 200
+    eval_delay: 100
+
+  # 报告配置 - Colab无tensorboard
+  report_to: []
+  project_name: "method-thinker-colab"
+  run_name: "colab-t4-training"
+
+# =============================================================================
+# LoRA配置（T4必须启用）
+# =============================================================================
+quantization:
+  enabled: false                         # Colab T4不推荐4-bit量化
+
+lora:
+  enabled: true                          # 必须启用LoRA节省显存
+  lora_r: 16                             # 标准LoRA秩
+  lora_alpha: 32
+  lora_dropout: 0.05
+  target_modules:
+    - "q_proj"
+    - "v_proj"
+    - "k_proj"
+    - "o_proj"
+  # T4显存足够可不训练gate/up/down_proj
+  # 如需更强效果可添加:
+  # - "gate_proj"
+  # - "up_proj"
+  # - "down_proj"
+
+# =============================================================================
+# 推理优化配置
+# =============================================================================
+inference:
+  vllm:
+    enabled: false                       # Colab不推荐vLLM
+
+  generation:
+    max_new_tokens: 512                  # 较短生成节省时间
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 50
+    do_sample: true
+    repetition_penalty: 1.1
+
+# =============================================================================
+# 评估配置（简化）
+# =============================================================================
+evaluation:
+  benchmarks:
+    - name: "aime_samples"
+      path: "data/test_sets/aime_samples.yaml"
+      pass_k: 8
+
+  params:
+    num_samples: 16                      # 减少评估样本
+    temperature: 0.7
+    timeout: 60
+
+  pass_at_k:
+    k_values: [1, 8]
+    confidence_level: 0.95
+
+# =============================================================================
+# 早停配置
+# =============================================================================
+early_stopping:
+  enabled: true
+  patience: 2                            # Colab会话时间限制
+  threshold: 0.001
+  metric: "eval_loss"
+  mode: "min"
+
+# =============================================================================
+# 恢复训练配置
+# =============================================================================
+resume:
+  enabled: false
+  checkpoint_path: null
+  resume_from_optimizer: true
+  resume_from_scheduler: true
+
+# =============================================================================
+# 安全与调试配置
+# =============================================================================
+debug:
+  enabled: false
+  save_inputs: false                     # Colab节省存储空间
+  save_outputs: false
+  max_debug_samples: 50
+
+safety:
+  gpu_monitoring:
+    enabled: true
+    log_interval: 30                     # 更频繁监控
+    alert_threshold: 85                  # 降低阈值提前预警
+
+  memory:
+    empty_cache_steps: 100               # 更频繁清理缓存
+    gc_interval: 200
+
+# =============================================================================
+# Colab特定配置
+# =============================================================================
+colab:
+  # Google Drive配置
+  drive_mount: true                      # 挂载Google Drive
+  drive_save_dir: "/content/drive/MyDrive/method-thinker-models"
+
+  # 会话保护
+  auto_save_interval: 15                 # 每15分钟自动保存到Drive
+  prevent_disconnect: true               # 启用防断连脚本
+
+  # 镜像配置
+  use_hf_mirror: true                    # 使用HuggingFace镜像加速下载
+  hf_mirror_url: "https://hf-mirror.com"
+
+  # 资源限制
+  max_session_hours: 12                  # Colab免费版12小时限制
+  warning_before_disconnect: 30         # 提前30分钟预警

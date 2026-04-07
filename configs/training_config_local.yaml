@@ -1,0 +1,305 @@
+# MethodThinker 本地训练配置 (Quadro T1000 4GB优化版)
+#
+# 该配置针对NVIDIA Quadro T1000 4GB显存进行优化
+# 使用QLoRA + 4-bit量化以在有限显存下进行训练
+#
+# 使用方法:
+#   python scripts/train_local.py
+#   python scripts/train_local.py --config configs/training_config_local.yaml
+
+# =============================================================================
+# 基础模型配置
+# =============================================================================
+# 使用较小的基座模型适配4GB显存
+
+model:
+  base_model: "Qwen/Qwen2.5-Math-1.5B"    # 1.5B模型，适合低显存环境
+  trust_remote_code: true                  # 是否信任远程代码
+  use_flash_attention: false               # T1000不支持Flash Attention 2
+
+  # 模型加载配置
+  loading:
+    torch_dtype: "float16"                 # 使用FP16 (T1000不支持BF16)
+    device_map: "auto"                     # 自动设备映射
+    low_cpu_mem_usage: true                # 低CPU内存使用
+
+# =============================================================================
+# 量化配置 (QLoRA)
+# =============================================================================
+# 4-bit量化 + LoRA，大幅降低显存需求
+
+quantization:
+  enabled: true                            # 启用4-bit量化
+
+  # 量化参数
+  method: "bitsandbytes"                   # 使用bitsandbytes量化
+  bits: 4                                  # 4-bit量化
+  load_in_4bit: true                       # 加载时直接量化
+  bnb_4bit_compute_dtype: "float16"        # 计算使用FP16
+  bnb_4bit_quant_type: "nf4"               # NF4量化类型（更适合正态分布权重）
+  bnb_4bit_use_double_quant: true          # 双重量化（进一步降低显存）
+
+  # LoRA配置
+  lora:
+    enabled: true                          # 启用LoRA
+    lora_r: 8                              # LoRA秩（降低以节省显存）
+    lora_alpha: 16                         # LoRA alpha (通常是r的2倍)
+    lora_dropout: 0.05                     # LoRA dropout
+    target_modules:
+      - "q_proj"
+      - "v_proj"
+      - "k_proj"
+      - "o_proj"
+      # 注意：不包含gate/up/down_proj以减少可训练参数
+      # 如需更多参数可添加这些模块
+
+# =============================================================================
+# 训练参数
+# =============================================================================
+# 针对低显存的保守参数设置
+
+training:
+  # 基础训练参数
+  num_epochs: 3                            # 训练轮数
+  batch_size: 1                            # 批大小=1（最小值）
+  gradient_accumulation_steps: 32          # 梯度累积32步（等效batch_size=32）
+
+  # 优化器参数
+  learning_rate: 2e-4                      # LoRA通常使用较高学习率
+  weight_decay: 0.01                       # 权重衰减
+  warmup_ratio: 0.05                       # warmup比例
+  warmup_steps: 0                          # warmup步数
+
+  # 学习率调度
+  lr_scheduler_type: "cosine"              # cosine衰减
+  lr_scheduler_kwargs: {}
+
+  # 梯度裁剪
+  max_grad_norm: 1.0                       # 最大梯度范数
+
+  # 序列长度（降低以节省显存）
+  max_length: 2048                         # 最大序列长度
+  max_prompt_length: 512                   # 最大提示长度
+
+  # 混合精度 - T1000仅支持FP16
+  fp16: true                               # 启用FP16训练
+  bf16: false                              # 禁用BF16 (T1000不支持)
+
+  # 优化器选择
+  optim: "adamw_8bit"                      # 8-bit Adam优化器（节省显存）
+
+  # 其他参数
+  seed: 42                                 # 随机种子
+  dataloader_num_workers: 0                # 数据加载器工作数（单GPU用0）
+  dataloader_pin_memory: false             # 不固定内存（低显存环境）
+
+  # 梯度检查点（进一步节省显存）
+  gradient_checkpointing: true             # 启用梯度检查点
+  gradient_checkpointing_kwargs:
+    use_reentrant: false                   # 非重入模式（推荐）
+
+# =============================================================================
+# 方法论注入训练参数
+# =============================================================================
+# 保持方法论注入训练的核心配置
+
+methodology_injection:
+  # 任务权重
+  weights:
+    method_selection: 0.3
+    solution_generation: 0.4
+    reflection: 0.3
+
+  # 方法选择配置
+  method_selection:
+    num_candidates: 3                      # 减少候选数量
+    include_reasoning: true
+    temperature: 0.7
+
+  # 解答生成配置
+  solution_generation:
+    max_steps: 15                          # 减少最大步数
+    include_annotations: true
+    temperature: 0.3
+
+  # 反思配置
+  reflection:
+    max_length: 300                        # 减少反思长度
+    include_critique: true
+    include_improvement: true
+
+# =============================================================================
+# 多样性训练参数
+# =============================================================================
+# 降低多样性训练强度
+
+diversity_training:
+  enabled: false                           # 本地训练默认禁用（显存限制）
+  methods_per_problem: 2                   # 每题使用的方法数（降低）
+
+  sampling_strategy: "diverse"
+
+  diversity_reward:
+    enabled: false                         # 禁用多样性奖励
+    weight: 0.1
+    min_method_gap: 0.3
+
+# =============================================================================
+# 反思强化训练参数
+# =============================================================================
+# 简化反思训练
+
+reflection_training:
+  enabled: false                           # 本地训练默认禁用（显存限制）
+
+  modes:
+    - self_critique
+
+  reinforcement:
+    reward_scale: 1.0
+    penalty_for_error: 0.5
+
+# =============================================================================
+# 数据配置
+# =============================================================================
+# 本地训练数据配置
+
+data:
+  # 训练数据路径
+  train_path: "data/train_data/train.json"
+  val_path: "data/train_data/val.json"
+  test_path: "data/train_data/test.json"
+
+  # 知识库路径
+  kb_path: "data/methodology_kb/v0/math_methods.yaml"
+
+  # 数据格式
+  format: "json"
+
+  # 数据预处理
+  preprocessing:
+    shuffle: true
+    filter_unverified: false
+    max_samples: 1000                      # 限制样本数量（本地训练）
+
+  # 数据增强
+  augmentation:
+    enabled: false                         # 禁用数据增强（本地训练）
+
+# =============================================================================
+# 输出配置
+# =============================================================================
+# 输出和保存配置
+
+output:
+  # 输出目录
+  output_dir: "outputs/local_checkpoints"
+
+  # 检查点保存
+  save_strategy: "steps"                   # 按步保存
+  save_steps: 200                          # 每200步保存
+  save_total_limit: 2                      # 只保留2个检查点
+
+  # 日志配置
+  logging:
+    logging_dir: "outputs/local_logs"
+    logging_steps: 50                      # 每50步记录
+    log_level: "INFO"
+
+  # 评估配置
+  evaluation:
+    eval_strategy: "steps"                 # 按步评估
+    eval_steps: 400                        # 每400步评估
+    eval_delay: 100                        # 前100步不评估
+
+  # 报告配置
+  report_to:
+    - "none"                               # 不使用外部报告工具
+  project_name: "method-thinker-local"
+  run_name: "qlora_local"
+
+# =============================================================================
+# 内存管理配置
+# =============================================================================
+# 针对4GB显存的内存优化
+
+memory:
+  # GPU显存管理
+  empty_cache_steps: 50                    # 每50步清空缓存
+  gc_interval: 100                         # 每100步垃圾回收
+
+  # 显存监控
+  monitoring:
+    enabled: true                          # 启用显存监控
+    log_interval: 10                       # 每10步记录显存
+    alert_threshold: 85                    # 85%显存使用告警
+    auto_reduce_on_threshold: true         # 超过阈值自动降低参数
+
+  # 失败恢复
+  on_oom:
+    strategy: "reduce_batch"               # OOM时降低batch
+    fallback_batch_size: 1                 # 回退batch大小
+    max_retries: 3                         # 最大重试次数
+
+# =============================================================================
+# 推理优化配置
+# =============================================================================
+# 本地推理配置
+
+inference:
+  # vLLM加速（低显存环境不推荐）
+  vllm:
+    enabled: false                         # 禁用vLLM
+
+  # 生成参数
+  generation:
+    max_new_tokens: 512                    # 减少生成token数
+    temperature: 0.7
+    top_p: 0.9
+    top_k: 50
+    do_sample: true
+    repetition_penalty: 1.1
+
+# =============================================================================
+# 早停配置
+# =============================================================================
+# 防止过拟合
+
+early_stopping:
+  enabled: true
+  patience: 2                              # 等待轮数
+  threshold: 0.001
+  metric: "eval_loss"
+  mode: "min"
+
+# =============================================================================
+# 恢复训练配置
+# =============================================================================
+# 从检查点恢复
+
+resume:
+  enabled: false
+  checkpoint_path: null
+  resume_from_optimizer: true
+  resume_from_scheduler: true
+
+# =============================================================================
+# 安全与调试配置
+# =============================================================================
+# 本地训练调试配置
+
+debug:
+  enabled: false
+  save_inputs: false                       # 不保存输入（节省空间）
+  save_outputs: false                      # 不保存输出
+  max_debug_samples: 10
+
+safety:
+  gpu_monitoring:
+    enabled: true
+    log_interval: 30
+    alert_threshold: 90
+
+  memory:
+    empty_cache_steps: 50
+    gc_interval: 100
