@@ -75,20 +75,20 @@ def create_training_config(config_dict: Dict, args: argparse.Namespace) -> Train
         base_model=args.base_model or model_config.get('base_model', 'Qwen/Qwen2.5-Math-1.5B'),
         output_dir=args.output_dir or config_dict.get('output', {}).get('output_dir', 'outputs/checkpoints'),
 
-        # 训练参数
-        num_epochs=args.epochs or training_params.get('num_epochs', 3),
-        batch_size=args.batch_size or training_params.get('batch_size', 8),
-        learning_rate=args.learning_rate or training_params.get('learning_rate', 5e-5),
-        warmup_ratio=training_params.get('warmup_ratio', 0.1),
-        weight_decay=training_params.get('weight_decay', 0.01),
+        # 训练参数 - 强制类型转换
+        num_epochs=int(args.epochs or training_params.get('num_epochs', 3)),
+        batch_size=int(args.batch_size or training_params.get('batch_size', 8)),
+        learning_rate=float(args.learning_rate or training_params.get('learning_rate', 5e-5)),
+        warmup_ratio=float(training_params.get('warmup_ratio', 0.1)),
+        weight_decay=float(training_params.get('weight_decay', 0.01)),
 
         # 方法论训练参数
-        method_selection_weight=config_dict.get('methodology_injection', {}).get('weights', {}).get('method_selection', 0.3),
-        solution_generation_weight=config_dict.get('methodology_injection', {}).get('weights', {}).get('solution_generation', 0.4),
-        reflection_weight=config_dict.get('methodology_injection', {}).get('weights', {}).get('reflection', 0.3),
+        method_selection_weight=float(config_dict.get('methodology_injection', {}).get('weights', {}).get('method_selection', 0.3)),
+        solution_generation_weight=float(config_dict.get('methodology_injection', {}).get('weights', {}).get('solution_generation', 0.4)),
+        reflection_weight=float(config_dict.get('methodology_injection', {}).get('weights', {}).get('reflection', 0.3)),
 
         # 序列长度
-        max_length=args.max_length or training_params.get('max_length', 4096)
+        max_length=int(args.max_length or training_params.get('max_length', 4096))
     )
 
     return config
