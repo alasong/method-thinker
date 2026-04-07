@@ -115,13 +115,35 @@ def test_sft_trainer():
             tokenizer.pad_token = tokenizer.eos_token
         print("✓ Tokenizer加载成功")
 
-        # 加载模型
+        # 加载模型（使用4-bit量化节省显存）
+        from transformers import BitsAndBytesConfig
+
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.float16,
+            bnb_4bit_quant_type="nf4",
+        )
+
         model = AutoModelForCausalLM.from_pretrained(
             "Qwen/Qwen2.5-Math-1.5B",
-            torch_dtype=torch.float32,
-            device_map=None
+            quantization_config=quantization_config,
+            device_map="auto"
         )
-        print("✓ 模型加载成功")
+        print("✓ 模型加载成功（4-bit量化）")
+
+        # 应用LoRA
+        from peft import LoraConfig, get_peft_model, TaskType
+
+        lora_config = LoraConfig(
+            task_type=TaskType.CAUSAL_LM,
+            r=8,
+            lora_alpha=16,
+            lora_dropout=0.05,
+            target_modules=["q_proj", "v_proj"],
+            bias="none"
+        )
+        model = get_peft_model(model, lora_config)
+        print("✓ LoRA配置完成")
 
         # 训练参数
         training_args = TrainingArguments(
