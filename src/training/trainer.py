@@ -126,12 +126,39 @@ class MethodThinkerTrainer:
         try:
             logger.info(f"加载基座模型: {self.config.base_model}")
 
-            self.model = AutoModelForCausalLM.from_pretrained(
-                self.config.base_model,
-                torch_dtype=torch.bfloat16 if torch.cuda.is_available() else torch.float32,
-                device_map="auto" if torch.cuda.is_available() else None,
-                trust_remote_code=True
-            )
+            # GPU内存优化：使用4-bit量化
+            if torch.cuda.is_available():
+                try:
+                    from transformers import BitsAndBytesConfig
+
+                    quantization_config = BitsAndBytesConfig(
+                        load_in_4bit=True,
+                        bnb_4bit_compute_dtype=torch.float16,
+                        bnb_4bit_quant_type="nf4",
+                        bnb_4bit_use_double_quant=True,
+                    )
+
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        self.config.base_model,
+                        quantization_config=quantization_config,
+                        device_map="auto",
+                        trust_remote_code=True
+                    )
+                    logger.info("使用4-bit量化加载模型（节省显存）")
+                except ImportError:
+                    logger.warning("bitsandbytes未安装，使用常规加载")
+                    self.model = AutoModelForCausalLM.from_pretrained(
+                        self.config.base_model,
+                        torch_dtype=torch.float16,
+                        device_map="auto",
+                        trust_remote_code=True
+                    )
+            else:
+                self.model = AutoModelForCausalLM.from_pretrained(
+                    self.config.base_model,
+                    torch_dtype=torch.float32,
+                    trust_remote_code=True
+                )
 
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.config.base_model,
@@ -143,8 +170,13 @@ class MethodThinkerTrainer:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
                 self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
 
-            # 应用LoRA
+            # 应用LoRA（4-bit量化后必须使用）
             if self.config.use_lora:
+                self._apply_lora()
+            else:
+                # 量化模型必须使用LoRA
+                logger.warning("量化模型建议使用LoRA，自动启用")
+                self.config.use_lora = True
                 self._apply_lora()
 
             logger.info("训练环境设置完成")
@@ -157,20 +189,25 @@ class MethodThinkerTrainer:
     def _apply_lora(self) -> bool:
         """应用LoRA配置"""
         try:
-            from peft import LoraConfig, get_peft_model, TaskType
+            from peft import LoraConfig, get_peft_model, TaskType, prepare_model_for_kbit_training
+
+            # 4-bit量化模型需要特殊准备
+            if hasattr(self.model, 'config') and hasattr(self.model.config, 'quantization_config'):
+                logger.info("准备4-bit量化模型用于LoRA训练...")
+                self.model = prepare_model_for_kbit_training(self.model)
 
             lora_config = LoraConfig(
                 task_type=TaskType.CAUSAL_LM,
-                r=self.config.lora_r,
-                lora_alpha=self.config.lora_alpha,
-                lora_dropout=self.config.lora_dropout,
-                target_modules=["q_proj", "v_proj", "k_proj", "o_proj",
-                                "gate_proj", "up_proj", "down_proj"],
+                r=int(self.config.lora_r),
+                lora_alpha=int(self.config.lora_alpha),
+                lora_dropout=float(self.config.lora_dropout),
+                target_modules=["q_proj", "v_proj"],  # 简化目标模块以减少显存
                 bias="none"
             )
 
             self.model = get_peft_model(self.model, lora_config)
             logger.info(f"LoRA配置已应用: r={self.config.lora_r}, alpha={self.config.lora_alpha}")
+            self.model.print_trainable_parameters()
             return True
 
         except ImportError:
