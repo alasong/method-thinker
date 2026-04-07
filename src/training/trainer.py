@@ -250,8 +250,6 @@ class MethodThinkerTrainer:
                 train_dataset=train_dataset,
                 eval_dataset=eval_dataset,
                 processing_class=self.tokenizer,
-                max_seq_length=self.config.max_length,
-                packing=False,
             )
 
             # 开始训练
@@ -333,7 +331,6 @@ class MethodThinkerTrainer:
                 warmup_ratio=self.config.warmup_ratio,
                 weight_decay=self.config.weight_decay,
                 gradient_accumulation_steps=self.config.gradient_accumulation_steps,
-                max_length=self.config.max_length,
                 save_steps=self.config.save_steps,
                 logging_steps=self.config.logging_steps,
                 save_total_limit=2,
@@ -347,9 +344,7 @@ class MethodThinkerTrainer:
                 model=self.model,
                 args=training_args,
                 train_dataset=train_dataset,
-                tokenizer=self.tokenizer,
-                max_seq_length=self.config.max_length,
-                packing=False,
+                processing_class=self.tokenizer,
             )
 
             logger.info(f"开始多样性训练 ({methods_per_problem} 方法/问题)...")
@@ -420,7 +415,6 @@ class MethodThinkerTrainer:
                 warmup_ratio=self.config.warmup_ratio,
                 weight_decay=self.config.weight_decay,
                 gradient_accumulation_steps=self.config.gradient_accumulation_steps,
-                max_length=self.config.max_length,
                 save_steps=self.config.save_steps,
                 logging_steps=self.config.logging_steps,
                 save_total_limit=2,
@@ -434,9 +428,7 @@ class MethodThinkerTrainer:
                 model=self.model,
                 args=training_args,
                 train_dataset=train_dataset,
-                tokenizer=self.tokenizer,
-                max_seq_length=self.config.max_length,
-                packing=False,
+                processing_class=self.tokenizer,
             )
 
             logger.info("开始反思强化训练...")
