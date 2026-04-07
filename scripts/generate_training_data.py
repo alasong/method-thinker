@@ -62,14 +62,23 @@ def load_problems(problems_path: str) -> List[Dict]:
     """加载问题列表
 
     Args:
-        problems_path: 问题文件路径（支持.json, .jsonl）
+        problems_path: 问题文件路径（支持.yaml, .yml, .json, .jsonl）
 
     Returns:
         问题列表
     """
     problems = []
 
-    if problems_path.endswith('.jsonl'):
+    if problems_path.endswith('.yaml') or problems_path.endswith('.yml'):
+        with open(problems_path, 'r', encoding='utf-8') as f:
+            data = yaml.safe_load(f)
+            if isinstance(data, dict) and 'problems' in data:
+                problems = data['problems']
+            elif isinstance(data, list):
+                problems = data
+            else:
+                problems = [data]
+    elif problems_path.endswith('.jsonl'):
         with open(problems_path, 'r', encoding='utf-8') as f:
             for line in f:
                 if line.strip():
