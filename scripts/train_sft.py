@@ -33,7 +33,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.training.trainer import MethodThinkerTrainer, TrainingConfig
-from src.data.dataset import MethodologyDataset
+from src.data.dataset import MethodologyDataset, MethodologySample
 from src.kb.knowledge_base import KnowledgeBase
 
 
@@ -94,25 +94,37 @@ def create_training_config(config_dict: Dict, args: argparse.Namespace) -> Train
     return config
 
 
-def load_training_data(data_config: Dict, kb_path: Optional[str] = None) -> tuple:
+def load_training_data(data_config: Dict, kb_path: Optional[str] = None,
+                        train_path: Optional[str] = None,
+                        val_path: Optional[str] = None,
+                        test_path: Optional[str] = None,
+                        auto_generate: bool = False) -> tuple:
     """加载训练数据
 
     Args:
         data_config: 数据配置
         kb_path: 知识库路径
+        train_path: 训练数据路径（命令行参数）
+        val_path: 验证数据路径（命令行参数）
+        test_path: 测试数据路径（命令行参数）
+        auto_generate: 是否从KB自动生成
 
     Returns:
         (train_data, val_data, test_data, kb)
     """
-    train_path = data_config.get('train_path', 'data/train_data/train.json')
-    val_path = data_config.get('val_path', 'data/train_data/val.json')
-    test_path = data_config.get('test_path', 'data/train_data/test.json')
+    # 优先使用命令行参数，否则使用配置文件
+    train_data_path = train_path or data_config.get('train_path', 'data/train_data/train.json')
+    val_data_path = val_path or data_config.get('val_path', 'data/train_data/val.json')
+    test_data_path = test_path or data_config.get('test_path', 'data/train_data/test.json')
 
     # 加载知识库
     kb = None
     if kb_path:
         try:
-            kb = KnowledgeBase.from_yaml(kb_path)
+            if kb_path.endswith('.yaml') or kb_path.endswith('.yml'):
+                kb = KnowledgeBase.from_yaml(kb_path)
+            else:
+                kb = KnowledgeBase.load(kb_path)
             print(f"加载知识库: {kb_path} ({len(kb.methods)} 个方法)")
         except FileNotFoundError:
             print(f"警告: 知识库文件不存在: {kb_path}")
@@ -122,21 +134,71 @@ def load_training_data(data_config: Dict, kb_path: Optional[str] = None) -> tupl
     val_data = None
     test_data = None
 
-    if os.path.exists(train_path):
-        train_data = MethodologyDataset(train_path, kb)
-        print(f"加载训练数据: {train_path} ({len(train_data)} 样本)")
+    if os.path.exists(train_data_path):
+        train_data = MethodologyDataset(train_data_path, kb)
+        print(f"加载训练数据: {train_data_path} ({len(train_data)} 样本)")
     else:
-        print(f"警告: 训练数据不存在: {train_path}")
+        print(f"警告: 训练数据不存在: {train_data_path}")
 
-    if os.path.exists(val_path):
-        val_data = MethodologyDataset(val_path, kb)
-        print(f"加载验证数据: {val_path} ({len(val_data)} 样本)")
+        # 自动从KB生成训练数据
+        if auto_generate and kb:
+            print("从知识库自动生成训练样本...")
+            train_data = generate_samples_from_kb(kb, num_samples=100)
+            print(f"生成训练样本: {len(train_data)} 个")
+        elif kb and not auto_generate:
+            print("提示: 使用 --auto-generate 可从KB自动生成训练数据")
 
-    if os.path.exists(test_path):
-        test_data = MethodologyDataset(test_path, kb)
-        print(f"加载测试数据: {test_path} ({len(test_data)} 样本)")
+    if os.path.exists(val_data_path):
+        val_data = MethodologyDataset(val_data_path, kb)
+        print(f"加载验证数据: {val_data_path} ({len(val_data)} 样本)")
+
+    if os.path.exists(test_data_path):
+        test_data = MethodologyDataset(test_data_path, kb)
+        print(f"加载测试数据: {test_data_path} ({len(test_data)} 样本)")
 
     return train_data, val_data, test_data, kb
+
+
+def generate_samples_from_kb(kb: KnowledgeBase, num_samples: int = 100) -> MethodologyDataset:
+    """从知识库生成训练样本
+
+    Args:
+        kb: 知识库
+        num_samples: 生成样本数
+
+    Returns:
+        MethodologyDataset: 生成的数据集
+    """
+    import random
+    from src.data.sample_generator import SampleGenerator
+
+    dataset = MethodologyDataset()
+    generator = SampleGenerator(kb)
+
+    # 为每个方法生成示例
+    methods = list(kb.methods.values())
+    samples_per_method = max(1, num_samples // len(methods))
+
+    for method in methods:
+        # 生成模拟问题
+        for i in range(samples_per_method):
+            sample = MethodologySample(
+                problem_id=f"{method.method_id}_sample_{i}",
+                problem=f"使用{method.name}解决的问题示例 {i+1}",
+                problem_type=method.category,
+                difficulty=method.difficulty,
+                candidate_methods=[{'method_id': method.method_id, 'name': method.name}],
+                selected_method=method.method_id,
+                selection_reasoning=f"该问题涉及{method.name}的适用场景",
+                solution_steps=method.template.get('steps', ['分析问题', '应用方法', '得出结论']),
+                solution_annotations=[],
+                reflection="",
+                source="auto_generated",
+                verified=False
+            )
+            dataset.samples.append(sample)
+
+    return dataset
 
 
 def setup_lora(config: TrainingConfig, lora_r: int = 16, lora_alpha: int = 32):
@@ -485,6 +547,28 @@ def main():
         help='输出目录'
     )
 
+    # 训练数据参数
+    parser.add_argument(
+        '--train-data',
+        type=str,
+        help='训练数据路径 (支持 .json, .jsonl, .yaml)'
+    )
+    parser.add_argument(
+        '--val-data',
+        type=str,
+        help='验证数据路径'
+    )
+    parser.add_argument(
+        '--test-data',
+        type=str,
+        help='测试数据路径'
+    )
+    parser.add_argument(
+        '--auto-generate',
+        action='store_true',
+        help='当没有训练数据时，从KB自动生成样本'
+    )
+
     # 训练参数
     parser.add_argument(
         '--epochs',
@@ -582,11 +666,26 @@ def main():
     # 加载训练数据
     print(f"\n加载训练数据...")
     data_config = config_dict.get('data', {})
-    train_data, val_data, test_data, kb = load_training_data(data_config, args.kb)
+    train_data, val_data, test_data, kb = load_training_data(
+        data_config,
+        kb_path=args.kb,
+        train_path=args.train_data,
+        val_path=args.val_data,
+        test_path=args.test_data,
+        auto_generate=args.auto_generate
+    )
 
     if train_data is None:
-        print("错误: 缺少训练数据")
-        print("请确保数据文件存在或使用 --kb 参数指定知识库")
+        print("\n错误: 缺少训练数据")
+        print("解决方案:")
+        print("  1. 使用 --train-data 指定训练数据路径")
+        print("  2. 使用 --kb 配合 --auto-generate 从KB生成数据")
+        print("  3. 先运行 generate_training_data.py 生成数据")
+        print("\n示例:")
+        print("  python scripts/generate_training_data.py \\")
+        print("    --kb data/methodology_kb/v0/math_methods.yaml \\")
+        print("    --problems data/test_sets/aime_samples.yaml \\")
+        print("    --output data/train_data/train.json")
         return
 
     # 创建训练器
