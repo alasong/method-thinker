@@ -154,8 +154,7 @@ class MethodThinkerTrainer:
                         self.config.base_model,
                         quantization_config=quantization_config,
                         device_map="auto",
-                        trust_remote_code=True,
-                        resume_download=True,  # 支持断点续传
+                        trust_remote_code=True
                     )
                     logger.info("使用4-bit量化加载模型（节省显存）")
                 except ImportError:
@@ -164,21 +163,18 @@ class MethodThinkerTrainer:
                         self.config.base_model,
                         torch_dtype=torch.float16,
                         device_map="auto",
-                        trust_remote_code=True,
-                        resume_download=True,
+                        trust_remote_code=True
                     )
             else:
                 self.model = AutoModelForCausalLM.from_pretrained(
                     self.config.base_model,
                     torch_dtype=torch.float32,
-                    trust_remote_code=True,
-                    resume_download=True,
+                    trust_remote_code=True
                 )
 
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.config.base_model,
-                trust_remote_code=True,
-                resume_download=True,
+                trust_remote_code=True
             )
 
             # 设置pad token
