@@ -1,0 +1,82 @@
+# GPU预设配置
+#
+# 不同GPU环境的参数预设，通过--config-override参数应用
+#
+# 使用方法:
+#   # 使用T4预设
+#   python scripts/train_sft.py --config-override configs/training_gpu_presets.yaml:t4
+#
+#   # 使用本地GPU预设
+#   python scripts/train_sft.py --config-override configs/training_gpu_presets.yaml:local
+
+presets:
+  # T4 GPU (16GB) - Colab免费版
+  t4:
+    description: "Google Colab T4 GPU (16GB)"
+    training:
+      batch_size: 4
+      gradient_accumulation_steps: 8
+      max_length: 2048
+    quantization:
+      enabled: true
+      bits: 4
+      lora:
+        enabled: true
+        lora_r: 16
+
+  # RTX 3090 (24GB)
+  rtx3090:
+    description: "RTX 3090 (24GB)"
+    training:
+      batch_size: 8
+      gradient_accumulation_steps: 4
+      max_length: 4096
+    quantization:
+      enabled: true
+      bits: 4
+      lora:
+        enabled: true
+        lora_r: 32
+
+  # RTX 4090 (24GB)
+  rtx4090:
+    description: "RTX 4090 (24GB)"
+    training:
+      batch_size: 8
+      gradient_accumulation_steps: 4
+      max_length: 4096
+    quantization:
+      enabled: true
+      bits: 4
+      lora:
+        enabled: true
+        lora_r: 32
+
+  # A100 (40GB)
+  a100:
+    description: "A100 (40GB)"
+    training:
+      batch_size: 16
+      gradient_accumulation_steps: 2
+      max_length: 4096
+    quantization:
+      enabled: false
+      lora:
+        enabled: true
+        lora_r: 64
+
+  # 本地小显存GPU (4GB)
+  local:
+    description: "本地小显存GPU (4GB)"
+    training:
+      batch_size: 1
+      gradient_accumulation_steps: 32
+      max_length: 2048
+    quantization:
+      enabled: true
+      bits: 4
+      lora:
+        enabled: true
+        lora_r: 8
+    model:
+      use_flash_attention: false
