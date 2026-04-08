@@ -11,7 +11,7 @@ import os
 from .layer0_fast_filter import Layer0FastFilter, ValidationResult
 from .layer1_self_reflection import Layer1SelfReflection
 from .layer2_multi_model import Layer2MultiModelValidation
-from .layer3_test_driven import Layer3TestDrivenValidation, TestCase
+from .layer3_test_driven import Layer3TestDrivenValidation, MethodTestCase
 from .ensemble_decision import EnsembleDecisionEngine, LayerResult
 
 
@@ -60,7 +60,7 @@ class ValidationPipeline:
         config: Optional[ValidationConfig] = None,
         model=None,
         model_clients: Optional[Dict] = None,
-        test_dataset: Optional[List[TestCase]] = None,
+        test_dataset: Optional[List[MethodTestCase]] = None,
         existing_kb: Optional[Dict] = None
     ):
         """初始化验证流水线

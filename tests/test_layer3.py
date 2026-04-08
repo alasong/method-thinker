@@ -7,8 +7,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import Mock
 from src.validation.layer3_test_driven import (
     Layer3TestDrivenValidation,
-    TestCase,
-    TestResult,
+    MethodTestCase,
+    MethodTestResult,
     ValidationResult
 )
 
@@ -23,19 +23,19 @@ def create_mock_model(response_text):
 def create_test_dataset():
     """创建测试数据集"""
     return [
-        TestCase(
+        MethodTestCase(
             problem='解方程 x^2 - 5x + 6 = 0',
             answer='x=2 或 x=3',
             difficulty=2,
             problem_type='ALGEBRA'
         ),
-        TestCase(
+        MethodTestCase(
             problem='计算 2x + 3 = 7 的解',
             answer='x=2',
             difficulty=1,
             problem_type='ALGEBRA'
         ),
-        TestCase(
+        MethodTestCase(
             problem='证明三角形内角和为180度',
             answer='180度',
             difficulty=3,
@@ -131,22 +131,22 @@ def test_statistics_computation():
     validator = Layer3TestDrivenValidation(Mock(), [])
 
     test_results = [
-        TestResult(
-            test_case=TestCase(problem='p1', answer='a1', difficulty=1),
+        MethodTestResult(
+            test_case=MethodTestCase(problem='p1', answer='a1', difficulty=1),
             predicted_answer='a1',
             is_correct=True,
             execution_time=1.0,
             steps_count=3
         ),
-        TestResult(
-            test_case=TestCase(problem='p2', answer='a2', difficulty=2),
+        MethodTestResult(
+            test_case=MethodTestCase(problem='p2', answer='a2', difficulty=2),
             predicted_answer='wrong',
             is_correct=False,
             execution_time=2.0,
             steps_count=4
         ),
-        TestResult(
-            test_case=TestCase(problem='p3', answer='a3', difficulty=2),
+        MethodTestResult(
+            test_case=MethodTestCase(problem='p3', answer='a3', difficulty=2),
             predicted_answer='a3',
             is_correct=True,
             execution_time=1.5,

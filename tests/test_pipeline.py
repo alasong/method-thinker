@@ -15,7 +15,7 @@ from src.validation.config import (
     EnsembleConfig,
     BudgetConfig
 )
-from src.validation.layer3_test_driven import TestCase
+from src.validation.layer3_test_driven import MethodTestCase
 from src.validation.ensemble_decision import LayerResult, ValidationResult
 
 
@@ -37,7 +37,7 @@ def create_mock_model_clients():
 def create_test_dataset():
     """创建测试数据集"""
     return [
-        TestCase(
+        MethodTestCase(
             problem='解方程 x^2 - 4 = 0',
             answer='x=2 或 x=-2',
             difficulty=2,

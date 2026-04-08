@@ -10,8 +10,8 @@ import time
 
 
 @dataclass
-class TestCase:
-    """测试用例"""
+class MethodTestCase:
+    """方法测试用例"""
     problem: str
     answer: str
     difficulty: int = 3
@@ -19,9 +19,9 @@ class TestCase:
 
 
 @dataclass
-class TestResult:
-    """测试结果"""
-    test_case: TestCase
+class MethodTestResult:
+    """方法测试结果"""
+    test_case: MethodTestCase
     predicted_answer: str
     is_correct: bool
     execution_time: float
@@ -52,7 +52,7 @@ class Layer3TestDrivenValidation:
     def __init__(
         self,
         model,
-        test_dataset: List[TestCase],
+        test_dataset: List[MethodTestCase],
         pass_threshold: float = 0.6
     ):
         """初始化测试驱动验证器
@@ -107,7 +107,7 @@ class Layer3TestDrivenValidation:
             }
         )
 
-    def _select_relevant_tests(self, method: Dict) -> List[TestCase]:
+    def _select_relevant_tests(self, method: Dict) -> List[MethodTestCase]:
         """选择相关测试"""
         applicability = method.get('applicability', [])
         problem_types = []
@@ -122,7 +122,7 @@ class Layer3TestDrivenValidation:
 
         return relevant[:50]  # 限制数量
 
-    def _execute_tests(self, method: Dict, tests: List[TestCase]) -> List[TestResult]:
+    def _execute_tests(self, method: Dict, tests: List[MethodTestCase]) -> List[MethodTestResult]:
         """执行测试"""
         results = []
 
@@ -137,7 +137,7 @@ class Layer3TestDrivenValidation:
             is_correct = self._verify_answer(predicted, test.answer)
             steps_count = self._count_steps(output)
 
-            results.append(TestResult(
+            results.append(MethodTestResult(
                 test_case=test,
                 predicted_answer=predicted,
                 is_correct=is_correct,
@@ -147,7 +147,7 @@ class Layer3TestDrivenValidation:
 
         return results
 
-    def _compute_statistics(self, results: List[TestResult]) -> Dict:
+    def _compute_statistics(self, results: List[MethodTestResult]) -> Dict:
         """计算统计指标"""
         if not results:
             return {
@@ -187,7 +187,7 @@ class Layer3TestDrivenValidation:
             'issues': issues
         }
 
-    def _build_test_input(self, test: TestCase, method: Dict) -> str:
+    def _build_test_input(self, test: MethodTestCase, method: Dict) -> str:
         """构建测试输入"""
         steps = method.get('template', {}).get('steps', [])
         steps_text = '\n'.join(f'{i+1}. {s}' for i, s in enumerate(steps))
