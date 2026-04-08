@@ -3,6 +3,11 @@
 MethodThinker模型训练器，支持方法论注入、多样性训练和反思强化训练。
 """
 
+# 设置HuggingFace镜像（必须在import transformers之前）
+import os
+if 'HF_ENDPOINT' not in os.environ:
+    os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Union
 import os
@@ -126,6 +131,13 @@ class MethodThinkerTrainer:
         try:
             logger.info(f"加载基座模型: {self.config.base_model}")
 
+            # 设置下载优化参数
+            os.environ['HF_HUB_ENABLE_HF_TRANSFER'] = '1'  # 启用并发下载
+
+            # 优先使用本地缓存
+            cache_dir = os.environ.get('HF_HOME', os.path.expanduser('~/.cache/huggingface'))
+            logger.info(f"模型缓存目录: {cache_dir}")
+
             # GPU内存优化：使用4-bit量化
             if torch.cuda.is_available():
                 try:
@@ -142,7 +154,8 @@ class MethodThinkerTrainer:
                         self.config.base_model,
                         quantization_config=quantization_config,
                         device_map="auto",
-                        trust_remote_code=True
+                        trust_remote_code=True,
+                        resume_download=True,  # 支持断点续传
                     )
                     logger.info("使用4-bit量化加载模型（节省显存）")
                 except ImportError:
@@ -151,18 +164,21 @@ class MethodThinkerTrainer:
                         self.config.base_model,
                         torch_dtype=torch.float16,
                         device_map="auto",
-                        trust_remote_code=True
+                        trust_remote_code=True,
+                        resume_download=True,
                     )
             else:
                 self.model = AutoModelForCausalLM.from_pretrained(
                     self.config.base_model,
                     torch_dtype=torch.float32,
-                    trust_remote_code=True
+                    trust_remote_code=True,
+                    resume_download=True,
                 )
 
             self.tokenizer = AutoTokenizer.from_pretrained(
                 self.config.base_model,
-                trust_remote_code=True
+                trust_remote_code=True,
+                resume_download=True,
             )
 
             # 设置pad token
