@@ -22,6 +22,11 @@ MethodThinker方法论注入训练CLI工具，支持多种训练模式。
 
 import sys
 import os
+
+# 设置HuggingFace镜像（国内加速）- 必须在import transformers之前
+if 'HF_ENDPOINT' not in os.environ:
+    os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+
 import json
 import yaml
 import argparse
