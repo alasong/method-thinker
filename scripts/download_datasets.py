@@ -17,30 +17,37 @@ from datetime import datetime
 
 # HuggingFace数据集配置
 DATASETS = {
-    "aime": {
-        "path": "EleutherAI/aime-1983-2024",
-        "name": "AIME 1983-2024",
-        "description": "美国数学邀请赛历年真题",
-        "expected_samples": 1000,
-    },
-    "math": {
-        "path": "hendrycks/competition_math",
-        "name": "Competition Math",
-        "description": "数学竞赛题目集合(AMC/AIME/IMO等)",
-        "expected_samples": 12500,
-    },
-    "amc": {
-        "path": "mdegyes/AMC",
-        "name": "AMC Problems",
-        "description": "美国数学竞赛题目",
-        "expected_samples": 10000,
-    },
     "gsm8k": {
         "path": "openai/gsm8k",
+        "config": "main",
         "name": "GSM8K",
         "description": "小学数学应用题",
         "expected_samples": 8500,
-    }
+    },
+    "math": {
+        "path": "lighteval/MATH",
+        "name": "MATH",
+        "description": "数学竞赛题目集合",
+        "expected_samples": 12500,
+    },
+    "aime": {
+        "path": "yukuai/AIME",
+        "name": "AIME",
+        "description": "美国数学邀请赛历年真题",
+        "expected_samples": 500,
+    },
+    "amc": {
+        "path": "digitous/AMC_AIME_Accumulated",
+        "name": "AMC/AIME Accumulated",
+        "description": "AMC/AIME累积题目",
+        "expected_samples": 3000,
+    },
+    "omni-math": {
+        "path": "KbsdJames/Omni-MATH",
+        "name": "Omni-MATH",
+        "description": "综合数学推理数据集",
+        "expected_samples": 5000,
+    },
 }
 
 
@@ -76,7 +83,12 @@ def download_dataset(dataset_name: str, cache_dir: str = None) -> Any:
     print(f"  预期样本数: {config['expected_samples']}")
 
     try:
-        dataset = load_dataset(config['path'], cache_dir=cache_dir)
+        # 某些数据集需要config参数
+        dataset_config = config.get('config', None)
+        if dataset_config:
+            dataset = load_dataset(config['path'], dataset_config, cache_dir=cache_dir)
+        else:
+            dataset = load_dataset(config['path'], cache_dir=cache_dir)
         print(f"  下载成功!")
         return dataset
     except Exception as e:
@@ -162,6 +174,78 @@ def convert_math_to_project_format(dataset: Any) -> List[Dict]:
     return samples
 
 
+def convert_gsm8k_to_project_format(dataset: Any) -> List[Dict]:
+    """转换GSM8K数据集为项目格式
+
+    Args:
+        dataset: HuggingFace数据集对象
+
+    Returns:
+        转换后的样本列表
+    """
+    samples = []
+
+    for split in dataset:
+        for item in dataset[split]:
+            problem = item.get('question', '')
+            solution = item.get('answer', '')
+
+            sample = {
+                "problem": problem,
+                "method_selection": "",
+                "solution_steps": [solution] if solution else [],
+                "final_answer": "",
+                "method_id": "UNKNOWN",
+                "method_name": "待标注",
+                "problem_type": "ARITHMETIC",
+                "difficulty": 2,
+                "annotations": [],
+                "sample_id": f"gsm8k_{len(samples)}",
+                "source": "gsm8k",
+                "verified": False
+            }
+            samples.append(sample)
+
+    print(f"  转换完成: {len(samples)} 样本")
+    return samples
+
+
+def convert_omni_math_to_project_format(dataset: Any) -> List[Dict]:
+    """转换Omni-MATH数据集为项目格式
+
+    Args:
+        dataset: HuggingFace数据集对象
+
+    Returns:
+        转换后的样本列表
+    """
+    samples = []
+
+    for split in dataset:
+        for item in dataset[split]:
+            problem = item.get('problem', item.get('question', ''))
+            solution = item.get('solution', '')
+
+            sample = {
+                "problem": problem,
+                "method_selection": "",
+                "solution_steps": [solution] if solution else [],
+                "final_answer": "",
+                "method_id": "UNKNOWN",
+                "method_name": "待标注",
+                "problem_type": "UNKNOWN",
+                "difficulty": 3,
+                "annotations": [],
+                "sample_id": f"omni_math_{len(samples)}",
+                "source": "omni_math",
+                "verified": False
+            }
+            samples.append(sample)
+
+    print(f"  转换完成: {len(samples)} 样本")
+    return samples
+
+
 def save_samples(samples: List[Dict], output_path: str, dataset_name: str):
     """保存样本到文件
 
@@ -188,7 +272,7 @@ def main():
     parser.add_argument(
         '--dataset',
         type=str,
-        choices=['aime', 'math', 'amc', 'gsm8k', 'all'],
+        choices=['aime', 'math', 'amc', 'gsm8k', 'omni-math', 'all'],
         default='aime',
         help='要下载的数据集 (default: aime)'
     )
@@ -231,7 +315,7 @@ def main():
             print(f"  - {name}: {config['name']} (~{config['expected_samples']}样本)")
         return
 
-    datasets_to_download = ['aime', 'math', 'amc', 'gsm8k'] if args.dataset == 'all' else [args.dataset]
+    datasets_to_download = ['gsm8k', 'math', 'aime', 'amc', 'omni-math'] if args.dataset == 'all' else [args.dataset]
 
     for dataset_name in datasets_to_download:
         print(f"\n处理数据集: {dataset_name}")
@@ -246,6 +330,10 @@ def main():
             samples = convert_aime_to_project_format(dataset)
         elif dataset_name == 'math':
             samples = convert_math_to_project_format(dataset)
+        elif dataset_name == 'gsm8k':
+            samples = convert_gsm8k_to_project_format(dataset)
+        elif dataset_name == 'omni-math':
+            samples = convert_omni_math_to_project_format(dataset)
         else:
             print(f"  警告: {dataset_name} 的转换器未实现")
             continue
