@@ -3,10 +3,13 @@
 MethodThinker模型训练器，支持方法论注入、多样性训练和反思强化训练。
 """
 
-# 设置HuggingFace镜像（必须在import transformers之前）
+# 设置HuggingFace镜像和缓存（必须在import transformers之前）
 import os
 if 'HF_ENDPOINT' not in os.environ:
     os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
+# 使用绑定目录作为缓存（持久化）
+if 'HF_HOME' not in os.environ:
+    os.environ['HF_HOME'] = '/mnt/data/huggingface_cache'
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any, Union
