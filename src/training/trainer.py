@@ -150,11 +150,21 @@ class MethodThinkerTrainer:
                         bnb_4bit_use_double_quant=True,
                     )
 
+                    # 检测是否支持Flash Attention
+                    use_flash_attn = False
+                    try:
+                        import flash_attn
+                        use_flash_attn = True
+                        logger.info("检测到Flash Attention，将启用加速")
+                    except ImportError:
+                        pass
+
                     self.model = AutoModelForCausalLM.from_pretrained(
                         self.config.base_model,
                         quantization_config=quantization_config,
                         device_map="auto",
-                        trust_remote_code=True
+                        trust_remote_code=True,
+                        attn_implementation="flash_attention_2" if use_flash_attn else "eager",
                     )
                     logger.info("使用4-bit量化加载模型（节省显存）")
                 except ImportError:
@@ -300,8 +310,12 @@ class MethodThinkerTrainer:
                 "fp16": has_gpu and not torch.cuda.is_bf16_supported(),
                 "seed": int(self.config.seed),
                 "report_to": "none",
-                "dataloader_num_workers": 0,  # Colab兼容
-                "dataloader_pin_memory": has_gpu,  # 仅GPU时启用
+                # 优化参数 - 提速
+                "dataloader_num_workers": 4 if has_gpu else 0,  # 多进程加载
+                "dataloader_pin_memory": has_gpu,
+                "gradient_checkpointing": True,  # 节省显存，允许更大batch
+                "optim": "adamw_torch_fused",  # 更快的优化器
+                "torch_compile": False,  # 可选: 启用会更快但首次编译慢
             }
 
             # 仅在有eval_dataset时添加eval相关参数
