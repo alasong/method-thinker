@@ -43,6 +43,24 @@ def load_solutions(path: str) -> List[Dict]:
     if path.endswith('.json'):
         with open(path, 'r', encoding='utf-8') as f:
             data = json.load(f)
+
+        # 处理评估报告格式（嵌套结构）
+        if isinstance(data, dict):
+            # 评估报告格式：提取 full_results 或 per_problem_results
+            if 'full_results' in data:
+                return data['full_results']
+            elif 'detailed_results' in data:
+                # 使用完整结果（优先）或详细结果
+                return data.get('full_results', data['detailed_results'])
+            elif 'per_problem_results' in data:
+                return data['per_problem_results']
+            elif 'problems' in data:
+                return data['problems']
+            else:
+                # 单条解答或无法识别格式
+                return [data]
+        return data
+
     elif path.endswith('.jsonl'):
         data = []
         with open(path, 'r', encoding='utf-8') as f:
@@ -51,6 +69,12 @@ def load_solutions(path: str) -> List[Dict]:
     elif path.endswith('.yaml') or path.endswith('.yml'):
         with open(path, 'r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
+
+        # 处理YAML嵌套结构
+        if isinstance(data, dict) and 'problems' in data:
+            return data['problems']
+        elif isinstance(data, dict):
+            return [data]
     else:
         raise ValueError(f"不支持的文件格式: {path}")
 

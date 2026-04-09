@@ -353,6 +353,7 @@ class EvaluationReportGenerator:
             'model_info': model_info,
             'dataset_info': dataset_info,
             'detailed_results': results.get('per_problem_results', [])[:50],  # 限制详细结果数量
+            'full_results': results.get('per_problem_results', []),  # 保存完整结果供提取使用
         }
 
         # 计算统计信息
