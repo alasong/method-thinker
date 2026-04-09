@@ -141,54 +141,101 @@ class MethodThinkerTrainer:
             cache_dir = os.environ.get('HF_HOME', os.path.expanduser('~/.cache/huggingface'))
             logger.info(f"模型缓存目录: {cache_dir}")
 
-            # GPU内存优化：使用4-bit量化
-            if torch.cuda.is_available():
+            # 检测是否使用ModelScope（国内环境加速）
+            use_modelscope = os.environ.get('USE_MODELSCOPE', 'false').lower() == 'true'
+            model_id = self.config.base_model
+
+            if use_modelscope:
                 try:
-                    from transformers import BitsAndBytesConfig
+                    from modelscope import AutoModelForCausalLM as MSModel
+                    from modelscope import AutoTokenizer as MSTokenizer
+                    logger.info("使用ModelScope加载模型（国内加速）")
 
-                    quantization_config = BitsAndBytesConfig(
-                        load_in_4bit=True,
-                        bnb_4bit_compute_dtype=torch.float16,
-                        bnb_4bit_quant_type="nf4",
-                        bnb_4bit_use_double_quant=True,
-                    )
+                    # GPU内存优化：使用4-bit量化
+                    if torch.cuda.is_available():
+                        try:
+                            from transformers import BitsAndBytesConfig
+                            quantization_config = BitsAndBytesConfig(
+                                load_in_4bit=True,
+                                bnb_4bit_compute_dtype=torch.float16,
+                                bnb_4bit_quant_type="nf4",
+                                bnb_4bit_use_double_quant=True,
+                            )
+                            self.model = MSModel.from_pretrained(
+                                model_id,
+                                quantization_config=quantization_config,
+                                device_map="auto",
+                                trust_remote_code=True
+                            )
+                        except:
+                            self.model = MSModel.from_pretrained(
+                                model_id,
+                                torch_dtype=torch.float16,
+                                device_map="auto",
+                                trust_remote_code=True
+                            )
+                    else:
+                        self.model = MSModel.from_pretrained(
+                            model_id,
+                            torch_dtype=torch.float32,
+                            trust_remote_code=True
+                        )
+                    self.tokenizer = MSTokenizer.from_pretrained(model_id, trust_remote_code=True)
 
-                    # 检测是否支持Flash Attention
-                    use_flash_attn = False
-                    try:
-                        import flash_attn
-                        use_flash_attn = True
-                        logger.info("检测到Flash Attention，将启用加速")
-                    except ImportError:
-                        pass
-
-                    self.model = AutoModelForCausalLM.from_pretrained(
-                        self.config.base_model,
-                        quantization_config=quantization_config,
-                        device_map="auto",
-                        trust_remote_code=True,
-                        attn_implementation="flash_attention_2" if use_flash_attn else "eager",
-                    )
-                    logger.info("使用4-bit量化加载模型（节省显存）")
                 except ImportError:
-                    logger.warning("bitsandbytes未安装，使用常规加载")
+                    logger.warning("ModelScope未安装，使用HuggingFace")
+                    use_modelscope = False
+
+            if not use_modelscope:
+                # 使用HuggingFace
+                # GPU内存优化：使用4-bit量化
+                if torch.cuda.is_available():
+                    try:
+                        from transformers import BitsAndBytesConfig
+
+                        quantization_config = BitsAndBytesConfig(
+                            load_in_4bit=True,
+                            bnb_4bit_compute_dtype=torch.float16,
+                            bnb_4bit_quant_type="nf4",
+                            bnb_4bit_use_double_quant=True,
+                        )
+
+                        # 检测是否支持Flash Attention
+                        use_flash_attn = False
+                        try:
+                            import flash_attn
+                            use_flash_attn = True
+                            logger.info("检测到Flash Attention，将启用加速")
+                        except ImportError:
+                            pass
+
+                        self.model = AutoModelForCausalLM.from_pretrained(
+                            self.config.base_model,
+                            quantization_config=quantization_config,
+                            device_map="auto",
+                            trust_remote_code=True,
+                            attn_implementation="flash_attention_2" if use_flash_attn else "eager",
+                        )
+                        logger.info("使用4-bit量化加载模型（节省显存）")
+                    except ImportError:
+                        logger.warning("bitsandbytes未安装，使用常规加载")
+                        self.model = AutoModelForCausalLM.from_pretrained(
+                            self.config.base_model,
+                            torch_dtype=torch.float16,
+                            device_map="auto",
+                            trust_remote_code=True
+                        )
+                else:
                     self.model = AutoModelForCausalLM.from_pretrained(
                         self.config.base_model,
-                        torch_dtype=torch.float16,
-                        device_map="auto",
+                        torch_dtype=torch.float32,
                         trust_remote_code=True
                     )
-            else:
-                self.model = AutoModelForCausalLM.from_pretrained(
+
+                self.tokenizer = AutoTokenizer.from_pretrained(
                     self.config.base_model,
-                    torch_dtype=torch.float32,
                     trust_remote_code=True
                 )
-
-            self.tokenizer = AutoTokenizer.from_pretrained(
-                self.config.base_model,
-                trust_remote_code=True
-            )
 
             # 设置pad token
             if self.tokenizer.pad_token is None:
